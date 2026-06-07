@@ -82,5 +82,9 @@
   "bugs": {
     "url": "https://github.com/amit-t/stet/issues"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
