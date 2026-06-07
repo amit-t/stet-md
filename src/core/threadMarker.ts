@@ -244,6 +244,7 @@ export function parseMarker(
     fail("marker body is empty or not a mapping", baseLine);
   const d = doc as Record<string, unknown>;
 
+  if (String(d.version ?? "") !== "1") fail(`marker "version" must be 1`, baseLine);
   if (d.id === undefined) fail(`marker is missing "id"`, baseLine);
   const status = asString(d.status ?? "open", "status", baseLine);
   if (!VALID_STATUS.includes(status as ThreadStatus))

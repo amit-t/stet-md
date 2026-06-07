@@ -1,23 +1,24 @@
 {
   "name": "redline-md",
   "version": "0.1.0",
-  "description": "Local Markdown review utility: threaded review comments that live inside the Markdown file, with byte-splice persistence and an agent-safe CLI.",
+  "description": "Local Markdown review utility: threaded review comments that live inside Markdown files with byte-splice persistence, agent CLI, and browser UI.",
   "keywords": [
     "markdown",
     "review",
     "comments",
     "annotations",
+    "local-first",
     "cli",
     "agents"
   ],
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=18"
+    "node": ">=20.10"
   },
   "bin": {
-    "redline": "bin/redline",
-    "rl": "bin/redline"
+    "redline": "dist/cli/main.js",
+    "rl": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -33,20 +34,30 @@
     "./safety": {
       "types": "./dist/safety/index.d.ts",
       "import": "./dist/safety/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
     }
   },
   "files": [
-    "dist",
-    "bin",
-    "docs/AGENT_PROTOCOL.md",
+    "dist/",
+    "docs/",
     "README.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run tests/core tests/cli tests/safety tests/server tests/security tests/browser",
+    "test:core": "vitest run tests/core",
+    "test:cli": "vitest run tests/cli",
+    "test:server": "vitest run tests/server tests/security",
+    "test:browser": "vitest run tests/browser",
+    "test:packaging": "npm run build && vitest run tests/packaging",
+    "ci": "npm run typecheck && npm test && npm run test:packaging",
+    "pack:dry": "npm pack --dry-run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run ci"
   },
   "dependencies": {
     "js-yaml": "^4.2.0",
@@ -57,7 +68,16 @@
     "@types/js-yaml": "^4.0.9",
     "@types/mdast": "^4.0.4",
     "@types/node": "^22.10.0",
+    "happy-dom": "latest",
     "typescript": "^5.7.0",
     "vitest": "^4.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amittiwari/redline.git"
+  },
+  "homepage": "https://github.com/amittiwari/redline#readme",
+  "bugs": {
+    "url": "https://github.com/amittiwari/redline/issues"
   }
 }

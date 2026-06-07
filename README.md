@@ -1,72 +1,83 @@
 # Redline
 
-Redline is a local Markdown review utility: open a Markdown file in the browser,
-add threaded review comments, save those threads back into the **same** Markdown
-file, and let AI agents reply in the same threads — no database, account, cloud
-service, or sidecar file.
+Redline is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
-The Markdown file is the source of truth. Saving review threads never rewrites
-unrelated bytes: edits are surgical **byte splices**, so formatting, wrapping,
-reference links, list markers, line endings, BOM, and the final newline all stay
-exactly as they were.
-
-Current status: **core storage, agent CLI, and safety primitives implemented**
-(PRDs 01, 02, 04). The browser review server/UI (PRD 03) plugs into the security
-helpers shipped here.
-
-## Identity
-
-| | |
-|---|---|
-| npm package | `redline-md` |
-| CLI binary | `redline` (alias `rl`) |
-| Thread marker | `redline:thread` |
-| Thread ID prefix | `rlt_` |
-| Local state dir | `.redline/` |
+- npm package: `redline-md`
+- binaries: `redline`, `rl`
+- marker: `redline:thread`
+- thread IDs: `rlt_...`
+- transient state: `.redline/`
 
 ## Install
 
-```zsh
-npm install            # install dependencies
-npm run build          # compile TypeScript to dist/
-npm test               # run the full test suite (vitest)
-npm run typecheck      # tsc --noEmit
-```
-
-After `npm install -g .` (or via the published package), the `redline` and `rl`
-binaries are available.
-
-## CLI
-
-Agent-safe, no browser required:
+From this repository:
 
 ```zsh
-redline list --json FILE.md                                   # threads as deterministic JSON
-redline reply FILE.md --thread ID --author Claude --message "…"   # append one reply
-redline resolve FILE.md --thread ID --author Claude --message "…" # mark resolved (+ optional message)
-redline comment FILE.md --target heading:"Product goals" --author Amit --message "…"  # create a thread
-redline --print-agent-protocol                                # agent collaboration protocol
-redline --version
-redline --help
+npm install
+npm run build
+npm link
 ```
 
-`--target` kinds: `heading:"Heading text"`, `paragraph:N` (1-based) or
-`paragraph:"substring"`, and `document` (file-level comment appended near the
-end).
+After publish:
 
-Author defaults to `$REDLINE_AUTHOR`, then `$USER`, then `Agent`.
+```zsh
+npm install -g redline-md
+```
 
-Exit codes: `0` ok · `1` runtime error (missing file, malformed marker with line
-number, unknown thread, file changed on disk) · `2` usage error.
+## Quick start
 
-The browser launch form `redline FILE.md [--author …] [--app …] [--port …]
-[--no-open]` is provided by the server subsystem (PRD 03) and is not bundled in
-this core build.
+```zsh
+redline README.md
+# or
+rl README.md
+```
+
+Useful launch flags:
+
+```zsh
+redline --author "Amit" README.md
+redline --app "Google Chrome" README.md
+redline --port 43117 README.md
+redline --no-open README.md
+```
+
+The server binds to `127.0.0.1`, sets an HttpOnly `SameSite=Strict` cookie, and opens `http://127.0.0.1:<port>/`. The token is never placed in the URL.
+
+## Browser review UI
+
+The UI includes:
+
+- top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview;
+- rendered Markdown body with commentable headings and paragraphs;
+- `+` affordances, double-click comments, keyboard `c` on focused blocks, and document-level comments;
+- side-panel thread cards with replies, resolve/reopen controls, orphan and content-drift warnings;
+- localStorage draft recovery keyed by file path and loaded file hash;
+- conflict banner when the file changes on disk before save.
+
+Resolved threads are collapsed by default. Orphaned threads appear under **Needs re-attach** and remain preserved in the Markdown file.
+
+## Agent CLI
+
+Agents should use CLI commands instead of hand-editing markers:
+
+```zsh
+redline list --json FILE.md
+redline reply FILE.md --thread rlt_... --author Claude --message "I updated the paragraph above."
+redline resolve FILE.md --thread rlt_... --author Claude --message "Resolved by the edit above."
+redline --print-agent-protocol
+```
+
+A helper exists for smoke tests and scripts:
+
+```zsh
+redline comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."
+```
+
+Full protocol: [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md).
 
 ## Storage format
 
-Threads persist as a structured HTML-comment marker (the source of truth)
-followed by a generated `[!NOTE]` blockquote (the human/agent-readable view):
+Threads are stored inline as structured HTML-comment markers plus a generated visible blockquote:
 
 ```markdown
 <!-- redline:thread
@@ -76,105 +87,87 @@ status: open
 created_at: 2026-06-07T15:00:15Z
 updated_at: 2026-06-07T15:00:15Z
 target:
-  kind: heading
+  kind: paragraph
   heading_path:
     - Product goals
   block_ordinal: 0
-  source_hash: sha256:4e2f…
+  source_hash: sha256:...
   quote: Product goals
 messages:
   - author: Amit
     created_at: 2026-06-07T15:00:15Z
     body: |-
-      This section needs a goal about agents responding inside the file.
+      This needs a clearer agent workflow.
 -->
 > [!NOTE]
 > **Review thread `rlt_20260607_150015_7f3a9c` — open**
 >
 > **Amit** · 2026-06-07 15:00 UTC
 >
-> This section needs a goal about agents responding inside the file.
+> This needs a clearer agent workflow.
 <!-- /redline:thread -->
 ```
 
-Guarantees:
+The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are stored as `body_base64:` so they cannot terminate the HTML comment early.
 
-- **Splice, never stringify.** The Markdown AST is used only to find source
-  positions; saves apply byte splices and preserve every untouched byte
-  (verified byte-for-byte across LF, CRLF, BOM, trailing spaces, list markers,
-  reference links, and final-newline state).
-- **Comment-safe bodies.** A message body containing `-->` or `--` is encoded
-  in the structured data so it cannot close the HTML comment early, and decoded
-  losslessly on read.
-- **Marker tokens in code are ignored.** `redline:thread` inside fenced/inline
-  code (docs, examples) is never mistaken for a real thread.
-- **Honest anchoring.** Threads reattach by adjacency + source hash; drift and
-  orphans are surfaced, never silently guessed (no fuzzy matching in MVP).
+## Write safety and formatter caveats
 
-## Safety model
+Redline saves by byte splices only. It does not stringify or reformat the whole Markdown document. Tests cover preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and paragraph wrapping outside expected splice ranges.
 
-- **Conflict-aware saves.** Before writing, Redline re-reads the file and
-  refuses to overwrite if it changed since load — no last-write-wins. A backup
-  of the prior bytes is written first.
-- **Backups & gitignore.** Backups go to `.redline/backups/<file>.<UTC>.<hash>.bak`.
-  `.redline/.gitignore` is auto-created containing `*`, so backups and locks
-  never enter git.
-- **Atomic writes.** New content is written to a temp file in the same
-  directory, fsynced, then renamed over the original.
-- **Locks.** `.redline/locks/` records PID, hostname, start time, target path,
-  and loaded hash. A second active instance warns; a lock whose PID is gone or
-  whose mtime is stale is recoverable.
+Formatter caveat: if an external formatter rewrites the file while Redline is open, Redline detects the file hash change and blocks save. Reload before saving staged comments. MVP intentionally has no force-save.
 
-### Loopback server security helpers
+Backups are written before replacement:
 
-For the browser subsystem (PRD 03), `redline-md/safety` exports framework-
-agnostic hooks (master PRD §15):
-
-- `generateToken`, `buildSessionCookie` (HttpOnly, SameSite=Strict, never in a
-  URL), `checkToken` (constant-time; rejects missing/wrong tokens),
-- `validateHost(host, port)` — rejects DNS-rebinding (only loopback hosts on the
-  expected port),
-- `securityHeaders()` / `contentSecurityPolicy()` — `no-referrer`, `nosniff`,
-  and a `default-src 'none'` CSP that blocks all remote loads,
-- `isRemoteResourceUrl` / `blockRemoteResourcesInHtml` — block remote images so
-  reviewing cannot leak via Referer.
-
-## Agent protocol
-
-See [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md) or run
-`redline --print-agent-protocol`. In short: prefer the CLI (`list` / `reply` /
-`resolve`); if hand-editing, only touch the `messages:` list inside the marker,
-use UTC `…Z` timestamps, never hand-edit the generated blockquote, and set
-`status: resolved` to close a thread.
-
-## Library API
-
-```ts
-import { scanThreadBlocks, insertThreadBlock, newThread } from "redline-md/core";
-import { acquireLock, securityHeaders } from "redline-md/safety";
-import { runCli } from "redline-md";
+```text
+.redline/
+  .gitignore      # contains *
+  backups/
+  locks/
 ```
 
-## PRD handoff docs
+## Security model
 
-1. [`docs/prd/00-redline-master-prd.md`](docs/prd/00-redline-master-prd.md) — consolidated master PRD.
-2. [`docs/prd/01-storage-format-and-splice-prd.md`](docs/prd/01-storage-format-and-splice-prd.md) — storage contract + byte-splice writer. **(implemented)**
-3. [`docs/prd/02-agent-cli-prd.md`](docs/prd/02-agent-cli-prd.md) — agent-safe CLI. **(implemented)**
-4. [`docs/prd/03-local-server-and-browser-ui-prd.md`](docs/prd/03-local-server-and-browser-ui-prd.md) — local server + review UI.
-5. [`docs/prd/04-safety-conflict-and-drafts-prd.md`](docs/prd/04-safety-conflict-and-drafts-prd.md) — safety, conflicts, locks, backups. **(implemented)**
-6. [`docs/prd/05-packaging-testing-and-release-prd.md`](docs/prd/05-packaging-testing-and-release-prd.md) — package, tests, release gates.
+Redline is local-only and has no telemetry.
 
-## Source provenance
+- Binds to `127.0.0.1` by default.
+- Serves only the selected Markdown file and bundled UI assets.
+- Uses an HttpOnly `SameSite=Strict` cookie token; missing/wrong tokens are rejected for API routes.
+- Validates `Host` to reject DNS rebinding attempts.
+- Sends `Referrer-Policy: no-referrer`.
+- Sends restrictive CSP: self-only scripts/styles, self/data images, no objects/forms/framing.
+- Escapes raw Markdown HTML by default.
+- Blocks remote Markdown images/resources by default.
 
-This repo consolidates:
+## Development
 
-- Base Codex canonical PRD from `~/Profiles/docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md`.
-- kid-Claude corrected v2 PRD from Profiles commit `6c1e45e`.
-- kid-Claude review findings folded into the canonical Redline PRD: byte-splice
-  persistence, structured thread markers, agent CLI, sub-block anchoring, and
-  loopback hardening.
+```zsh
+npm install
+npm run typecheck
+npm test
+npm run test:packaging
+npm run ci
+npm pack --dry-run
+```
+
+Test groups:
+
+- `tests/core/` parser, anchors, thread serialization, byte-splice writer.
+- `tests/server/` local server save/reopen/conflict flow.
+- `tests/security/` token, Host, CSP, no-referrer, remote-resource blocking.
+- `tests/browser/` browser UI smoke using a DOM-compatible runtime.
+- `tests/packaging/` package metadata and built CLI smoke.
+
+## Release gates
+
+MVP release requires:
+
+1. core parser/splice tests pass;
+2. server, security, and browser smoke tests pass;
+3. `redline --version`, `--help`, `--print-agent-protocol` work;
+4. README documents install, usage, storage, security, formatter caveats, and agent protocol;
+5. release notes list MVP limitations;
+6. dogfood run against the master PRD or a byte-identical copy.
 
 ## MVP limitations
 
-No list-item, table-row, or text-range comments yet; no full fuzzy reattachment;
-no force-save. See the master PRD §17 for the full scope.
+See [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md). Current MVP does not support list-item, table-row, or text-range comments.
