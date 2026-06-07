@@ -1,5 +1,5 @@
 {
-  "name": "stet",
+  "name": "@amit-t/stet",
   "version": "0.1.0",
   "description": "Local Markdown review utility for engineers and AI agents: threaded comments that live inside Markdown files with byte-splice persistence.",
   "keywords": [

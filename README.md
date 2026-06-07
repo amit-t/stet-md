@@ -2,7 +2,7 @@
 
 Stet is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
-- npm package: `stet`
+- npm package: `@amit-t/stet`
 - binaries: `stet`, `s`; legacy aliases: `redline`, `rl`
 - marker: `stet:thread`
 - thread IDs: `stt_...`
@@ -31,16 +31,16 @@ If `pnpm link --global` says the global bin directory is not configured, run `pn
 After `stet` is published to npm, anyone can run Stet without cloning this repo:
 
 ```zsh
-npx stet@latest README.md
+npx @amit-t/stet@latest README.md
 # or
-pnpm dlx stet README.md
+pnpm dlx @amit-t/stet README.md
 ```
 
 `npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `stet` binary, and leaves no project dependency behind. Pass the same flags you would pass to `stet`:
 
 ```zsh
-npx stet@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
-pnpm dlx stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
+npx @amit-t/stet@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
+pnpm dlx @amit-t/stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
 ```
 
 ### Persistent install after publish
@@ -48,9 +48,9 @@ pnpm dlx stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
 For a permanent terminal command without cloning the repo:
 
 ```zsh
-pnpm add --global stet
+pnpm add --global @amit-t/stet
 # or, if you prefer npm for global tools:
-npm install -g stet
+npm install -g @amit-t/stet
 
 stet --version
 stet README.md

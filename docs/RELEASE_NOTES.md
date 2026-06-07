@@ -4,7 +4,7 @@
 
 ### Included
 
-- `stet` npm package metadata.
+- `@amit-t/stet` npm package metadata with `stet` and `s` binaries.
 - `stet` binary and `s` alias, with `redline`/`rl` kept as legacy command aliases for migration.
 - `stet FILE.md` local loopback review server.
 - Browser UI for heading, paragraph, and document-level comments.

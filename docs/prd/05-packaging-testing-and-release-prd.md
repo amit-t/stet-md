@@ -7,7 +7,7 @@ Ship Stet as a standalone utility that an implementation agent can build, test, 
 ## Package identity
 
 - Repo: `stet`
-- npm package: `stet`
+- npm package: `@amit-t/stet`
 - Binary: `stet`
 - Alias: `rl`
 - Marker: `stet:thread`
@@ -113,7 +113,7 @@ MVP release cannot ship unless:
 
 ## Acceptance criteria
 
-- `npm package` metadata uses `stet`.
+- `npm package` metadata uses `@amit-t/stet`, with `stet` as the primary CLI binary.
 - Installed binary is `stet`; alias `rl` works if shipped.
 - `stet --version` and `stet --help` work.
 - CI runs unit, CLI, and browser smoke tests.

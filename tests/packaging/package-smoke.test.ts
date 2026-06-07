@@ -8,7 +8,7 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 describe("package metadata and CLI smoke", () => {
   test("npm identity and binaries match PRD", () => {
-    expect(packageJson.name).toBe("stet");
+    expect(packageJson.name).toBe("@amit-t/stet");
     expect(packageJson.bin.stet).toBe("dist/cli/main.js");
     expect(packageJson.bin.s).toBe("dist/cli/main.js");
     expect(packageJson.bin.redline).toBe("dist/cli/main.js");
@@ -71,9 +71,9 @@ describe("package metadata and CLI smoke", () => {
     expect(readme).toContain("pnpm install");
     expect(readme).toContain("pnpm run build");
     expect(readme).toContain("pnpm link --global");
-    expect(readme).toContain("npx stet@latest README.md");
-    expect(readme).toContain("pnpm dlx stet README.md");
-    expect(readme).toContain("npm install -g stet");
+    expect(readme).toContain("npx @amit-t/stet@latest README.md");
+    expect(readme).toContain("pnpm dlx @amit-t/stet README.md");
+    expect(readme).toContain("npm install -g @amit-t/stet");
   });
 
 });

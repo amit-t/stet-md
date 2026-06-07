@@ -5,7 +5,7 @@
 - **Status:** Draft thesis / product requirements document
 - **Name:** **Stet** — threaded review comments that live inside the Markdown
 - **GitHub repo:** `stet` (standalone; not part of this `Profiles` dotfiles repo)
-- **npm package:** `stet` (bare `stet` is taken by a stale package)
+- **npm package:** `@amit-t/stet`
 - **Binary:** `stet` (alias `rl`) — e.g. `stet prd.md`
 - **On-disk marker token:** `stet:thread` · thread-ID prefix `stt_` · state dir `.stet/`
 - **Audience:** Amit, Codex/Claude/Devin agents, future implementer
