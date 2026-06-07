@@ -1,0 +1,52 @@
+{
+  "name": "redline-md",
+  "version": "0.1.0",
+  "description": "Local Markdown review comments stored inside Markdown files.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "redline": "dist/cli/main.js",
+    "rl": "dist/cli/main.js"
+  },
+  "files": [
+    "dist/",
+    "docs/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run tests/core tests/server tests/security tests/browser",
+    "test:core": "vitest run tests/core",
+    "test:server": "vitest run tests/server tests/security",
+    "test:browser": "vitest run tests/browser",
+    "test:packaging": "npm run build && vitest run tests/packaging",
+    "ci": "npm run typecheck && npm test && npm run test:packaging",
+    "pack:dry": "npm pack --dry-run",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=20.10"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "happy-dom": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amittiwari/redline.git"
+  },
+  "keywords": [
+    "markdown",
+    "review",
+    "comments",
+    "local-first",
+    "cli"
+  ],
+  "homepage": "https://github.com/amittiwari/redline#readme",
+  "bugs": {
+    "url": "https://github.com/amittiwari/redline/issues"
+  }
+}
