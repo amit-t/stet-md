@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-export const TOKEN_COOKIE_NAME = "redline_token";
+export const TOKEN_COOKIE_NAME = "stet_token";
 
 export function securityHeaders(): Record<string, string> {
   return {

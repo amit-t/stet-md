@@ -12,7 +12,7 @@ afterEach(async () => {
 });
 
 function tempMarkdown(contents = "# Title\n\nParagraph one.\n"): string {
-  const dir = mkdtempSync(join(tmpdir(), "redline-server-"));
+  const dir = mkdtempSync(join(tmpdir(), "stet-server-"));
   const file = join(dir, "fixture.md");
   writeFileSync(file, contents);
   return file;
@@ -48,7 +48,7 @@ describe("local review server", () => {
     const docResponse = await fetchWithCookie(server, "/api/document");
     expect(docResponse.status).toBe(200);
     const doc = await docResponse.json();
-    expect(doc.html).toContain("data-redline-target");
+    expect(doc.html).toContain("data-stet-target");
     expect(doc.targets.some((target: { kind: string }) => target.kind === "paragraph")).toBe(true);
 
     const richFileServer = await start(tempMarkdown("# Rich\n\nParagraph.\n\n- one\n- two\n\n> quoted\n\n```ts\nconst x = 1;\n```\n"));

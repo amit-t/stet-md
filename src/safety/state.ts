@@ -3,23 +3,23 @@ import { dirname, join, resolve } from "node:path";
 import { ensureGitignore } from "./gitignore.js";
 
 /**
- * Resolve and create the `.redline/` state directory that holds backups and
- * locks. It lives alongside the reviewed file. A `.redline/.gitignore`
+ * Resolve and create the `.stet/` state directory that holds backups and
+ * locks. It lives alongside the reviewed file. A `.stet/.gitignore`
  * containing `*` is auto-created so transient state never enters git.
  */
 
 export interface StatePaths {
-  /** `<file dir>/.redline` */
+  /** `<file dir>/.stet` */
   root: string;
-  /** `<file dir>/.redline/backups` */
+  /** `<file dir>/.stet/backups` */
   backups: string;
-  /** `<file dir>/.redline/locks` */
+  /** `<file dir>/.stet/locks` */
   locks: string;
 }
 
 export function statePaths(targetFile: string): StatePaths {
   const dir = dirname(resolve(targetFile));
-  const root = join(dir, ".redline");
+  const root = join(dir, ".stet");
   return {
     root,
     backups: join(root, "backups"),
@@ -27,7 +27,7 @@ export function statePaths(targetFile: string): StatePaths {
   };
 }
 
-/** Create `.redline/` (and its `.gitignore`) for a target file. */
+/** Create `.stet/` (and its `.gitignore`) for a target file. */
 export function ensureStateDir(targetFile: string): StatePaths {
   const paths = statePaths(targetFile);
   mkdirSync(paths.root, { recursive: true });

@@ -12,7 +12,7 @@ import { shortHash } from "../core/hash.js";
 import { ensureStateDir } from "./state.js";
 
 /**
- * Advisory single-writer locks under `.redline/locks/`. A second Redline
+ * Advisory single-writer locks under `.stet/locks/`. A second Stet
  * instance on the same file is detected and warned about; last-write-wins is
  * forbidden. A lock is considered stale (and recoverable) when its PID no
  * longer exists or its mtime is older than the staleness window.

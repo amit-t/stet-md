@@ -12,7 +12,7 @@ afterEach(async () => {
 });
 
 async function start(contents: string): Promise<ReviewServer> {
-  const dir = mkdtempSync(join(tmpdir(), "redline-security-"));
+  const dir = mkdtempSync(join(tmpdir(), "stet-security-"));
   const file = join(dir, "fixture.md");
   writeFileSync(file, contents);
   const server = await createReviewServer({ filePath: file, author: "Amit", openBrowser: false, port: 0 });
@@ -40,7 +40,7 @@ describe("server hardening", () => {
     const missing = await fetch(`${server.url}/api/document`, { headers: { Host: `127.0.0.1:${server.port}` } });
     expect(missing.status).toBe(401);
 
-    const wrong = await fetch(`${server.url}/api/document`, { headers: { Host: `127.0.0.1:${server.port}`, Cookie: "redline_token=wrong" } });
+    const wrong = await fetch(`${server.url}/api/document`, { headers: { Host: `127.0.0.1:${server.port}`, Cookie: "stet_token=wrong" } });
     expect(wrong.status).toBe(401);
   });
 
@@ -75,6 +75,6 @@ describe("server hardening", () => {
     expect(doc.html).not.toContain("<img");
     expect(doc.html).not.toContain("https://evil.example");
     expect(doc.html).not.toContain("<script>");
-    expect(doc.html).toContain("data-redline-blocked-resource");
+    expect(doc.html).toContain("data-stet-blocked-resource");
   });
 });

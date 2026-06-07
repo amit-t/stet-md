@@ -3,7 +3,7 @@ import { scanThreadBlocks } from "../core/parseThreads.js";
 import { replaceThreadBlock, insertThreadBlock } from "../core/spliceWriter.js";
 import { appendMessage, resolveThread, newThread } from "../core/threadOps.js";
 import { resolveTarget, parseTargetSpec } from "../core/markdown.js";
-import { RedlineError } from "../core/errors.js";
+import { StetError } from "../core/errors.js";
 import { loadDoc, saveDoc, type LoadedDoc } from "./io.js";
 import { requireFlag, optionalFlag, type ParsedArgs } from "./args.js";
 
@@ -18,7 +18,7 @@ export interface CliContext {
 function requireFile(args: ParsedArgs, command: string): string {
   const file = args.positionals[0];
   if (!file) {
-    throw new RedlineError("usage", `${command} requires a FILE.md argument`);
+    throw new StetError("usage", `${command} requires a FILE.md argument`);
   }
   return file;
 }
@@ -34,7 +34,7 @@ function findBlockByThreadId(content: string, threadId: string) {
   if (errors.length > 0) throw errors[0]!;
   const block = blocks.find((b) => b.thread?.id === threadId);
   if (!block || !block.thread) {
-    throw new RedlineError("unknown_thread", `no thread with id "${threadId}"`);
+    throw new StetError("unknown_thread", `no thread with id "${threadId}"`);
   }
   return block;
 }

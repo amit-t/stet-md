@@ -1,5 +1,5 @@
 /**
- * Core Redline data model. The structured `redline:thread` marker is the
+ * Core Stet data model. The structured `stet:thread` marker is the
  * source of truth; visible blockquotes, browser cards, and CLI JSON are derived.
  */
 

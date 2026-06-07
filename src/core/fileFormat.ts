@@ -2,7 +2,7 @@
  * Detect the byte-level shape of a Markdown file so saves can regenerate
  * inserted blocks in the file's own style without disturbing the rest.
  *
- * Redline operates on the file as a UTF-8 string. Node's UTF-8 decoder
+ * Stet operates on the file as a UTF-8 string. Node's UTF-8 decoder
  * preserves a leading BOM as U+FEFF and re-encodes every unchanged substring
  * to byte-identical UTF-8, so string-space splicing is byte-exact for valid
  * UTF-8 input. These helpers describe the conventions an inserted block must

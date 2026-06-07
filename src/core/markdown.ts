@@ -3,7 +3,7 @@ import type { ReviewTarget, TargetKind } from "./types.js";
 import { hashTargetText } from "./hash.js";
 import { scanThreadBlocks } from "./parseThreads.js";
 import { parseAst, nodeText } from "./ast.js";
-import { RedlineError } from "./errors.js";
+import { StetError } from "./errors.js";
 
 /**
  * Markdown target layer. Provides source positions for finding comment targets
@@ -98,7 +98,7 @@ function skipFollowingThreadBlocks(
 
 /**
  * Resolve a target spec to a concrete target + insertion offset.
- * Throws RedlineError("target_not_found"/"invalid_target") when unresolvable.
+ * Throws StetError("target_not_found"/"invalid_target") when unresolvable.
  */
 export function resolveTarget(
   source: string,
@@ -200,12 +200,12 @@ export function resolveTarget(
   }
 
   if (spec.kind === "heading") {
-    throw new RedlineError(
+    throw new StetError(
       "target_not_found",
       `no heading matches "${spec.value}"`,
     );
   }
-  throw new RedlineError(
+  throw new StetError(
     "target_not_found",
     `no paragraph matches "${spec.value}"`,
   );
@@ -219,14 +219,14 @@ export function parseTargetSpec(raw: string): TargetSpec {
   if (kind === "document") return { kind: "document" };
   if (kind === "heading" || kind === "paragraph") {
     if (!value) {
-      throw new RedlineError(
+      throw new StetError(
         "invalid_target",
         `target "${kind}" requires a value, e.g. ${kind}:"Product goals"`,
       );
     }
     return { kind, value };
   }
-  throw new RedlineError(
+  throw new StetError(
     "invalid_target",
     `unknown target kind "${kind}" (expected document, heading, or paragraph)`,
   );

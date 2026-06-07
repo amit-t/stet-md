@@ -1,46 +1,46 @@
-# Redline
+# Stet
 
-Redline is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
+Stet is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
-- npm package: `redline-md`
-- binaries: `redline`, `rl`, `redline-md` (package-name bin for `npx redline-md@latest`)
-- marker: `redline:thread`
-- thread IDs: `rlt_...`
-- transient state: `.redline/`
+- npm package: `stet`
+- binaries: `stet`, `s`; legacy aliases: `redline`, `rl`
+- marker: `stet:thread`
+- thread IDs: `stt_...`
+- transient state: `.stet/`
 
 ## Install
 
 ### Install from Amit's local checkout
 
-Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/redline`:
+Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/stet`:
 
 ```zsh
-cd /Users/amittiwari/Projects/Tools-Utilities/redline
+cd /Users/amittiwari/Projects/Tools-Utilities/stet
 pnpm install
 pnpm run build
 pnpm link --global
 rehash
-redline --version
-rl --help
+stet --version
+s --help
 ```
 
 If `pnpm link --global` says the global bin directory is not configured, run `pnpm setup`, restart the shell, then repeat `pnpm link --global`.
 
 ### No-clone one-shot usage after publish
 
-After `redline-md` is published to npm, anyone can run Redline without cloning this repo:
+After `stet` is published to npm, anyone can run Stet without cloning this repo:
 
 ```zsh
-npx redline-md@latest README.md
+npx stet@latest README.md
 # or
-pnpm dlx redline-md README.md
+pnpm dlx stet README.md
 ```
 
-`npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `redline-md` binary, and leaves no project dependency behind. Pass the same flags you would pass to `redline`:
+`npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `stet` binary, and leaves no project dependency behind. Pass the same flags you would pass to `stet`:
 
 ```zsh
-npx redline-md@latest --author "Amit" --app "Google Chrome" docs/prd/00-redline-master-prd.md
-pnpm dlx redline-md --no-open --port 43117 docs/prd/00-redline-master-prd.md
+npx stet@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
+pnpm dlx stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
 ```
 
 ### Persistent install after publish
@@ -48,29 +48,29 @@ pnpm dlx redline-md --no-open --port 43117 docs/prd/00-redline-master-prd.md
 For a permanent terminal command without cloning the repo:
 
 ```zsh
-pnpm add --global redline-md
+pnpm add --global stet
 # or, if you prefer npm for global tools:
-npm install -g redline-md
+npm install -g stet
 
-redline --version
-redline README.md
+stet --version
+stet README.md
 ```
 
 ## Quick start
 
 ```zsh
-redline README.md
+stet README.md
 # or
-rl README.md
+s README.md
 ```
 
 Useful launch flags:
 
 ```zsh
-redline --author "Amit" README.md
-redline --app "Google Chrome" README.md
-redline --port 43117 README.md
-redline --no-open README.md
+stet --author "Amit" README.md
+stet --app "Google Chrome" README.md
+stet --port 43117 README.md
+stet --no-open README.md
 ```
 
 The server binds to `127.0.0.1`, sets an HttpOnly `SameSite=Strict` cookie, and opens `http://127.0.0.1:<port>/`. The token is never placed in the URL.
@@ -93,16 +93,16 @@ Resolved threads are collapsed by default. Orphaned threads appear under **Needs
 Agents should use CLI commands instead of hand-editing markers:
 
 ```zsh
-redline list --json FILE.md
-redline reply FILE.md --thread rlt_... --author Claude --message "I updated the paragraph above."
-redline resolve FILE.md --thread rlt_... --author Claude --message "Resolved by the edit above."
-redline --print-agent-protocol
+stet list --json FILE.md
+stet reply FILE.md --thread stt_... --author Claude --message "I updated the paragraph above."
+stet resolve FILE.md --thread stt_... --author Claude --message "Resolved by the edit above."
+stet --print-agent-protocol
 ```
 
 A helper exists for smoke tests and scripts:
 
 ```zsh
-redline comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."
+stet comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."
 ```
 
 Full protocol: [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md).
@@ -112,9 +112,9 @@ Full protocol: [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md).
 Threads are stored inline as structured HTML-comment markers plus a generated visible blockquote:
 
 ```markdown
-<!-- redline:thread
+<!-- stet:thread
 version: 1
-id: rlt_20260607_150015_7f3a9c
+id: stt_20260607_150015_7f3a9c
 status: open
 created_at: 2026-06-07T15:00:15Z
 updated_at: 2026-06-07T15:00:15Z
@@ -132,26 +132,26 @@ messages:
       This needs a clearer agent workflow.
 -->
 > [!NOTE]
-> **Review thread `rlt_20260607_150015_7f3a9c` — open**
+> **Review thread `stt_20260607_150015_7f3a9c` — open**
 >
 > **Amit** · 2026-06-07 15:00 UTC
 >
 > This needs a clearer agent workflow.
-<!-- /redline:thread -->
+<!-- /stet:thread -->
 ```
 
-The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are escaped in the structured marker so they cannot terminate the HTML comment early, then decoded losslessly when Redline parses the thread.
+The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are escaped in the structured marker so they cannot terminate the HTML comment early, then decoded losslessly when Stet parses the thread.
 
 ## Write safety and formatter caveats
 
-Redline saves by byte splices only. It does not stringify or reformat the whole Markdown document. Tests cover preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and paragraph wrapping outside expected splice ranges.
+Stet saves by byte splices only. It does not stringify or reformat the whole Markdown document. Tests cover preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and paragraph wrapping outside expected splice ranges.
 
-Formatter caveat: if an external formatter rewrites the file while Redline is open, Redline detects the file hash change and blocks save. Reload before saving staged comments. MVP intentionally has no force-save.
+Formatter caveat: if an external formatter rewrites the file while Stet is open, Stet detects the file hash change and blocks save. Reload before saving staged comments. MVP intentionally has no force-save.
 
 Backups are written before replacement:
 
 ```text
-.redline/
+.stet/
   .gitignore      # contains *
   backups/
   locks/
@@ -159,7 +159,7 @@ Backups are written before replacement:
 
 ## Security model
 
-Redline is local-only and has no telemetry.
+Stet is local-only and has no telemetry.
 
 - Binds to `127.0.0.1` by default.
 - Serves only the selected Markdown file and bundled UI assets.
@@ -172,7 +172,7 @@ Redline is local-only and has no telemetry.
 
 ## Development
 
-Redline uses pnpm for repository development. Keep `pnpm-lock.yaml` as the only package-manager lockfile.
+Stet uses pnpm for repository development. Keep `pnpm-lock.yaml` as the only package-manager lockfile.
 
 ```zsh
 pnpm install
@@ -197,7 +197,7 @@ MVP release requires:
 
 1. core parser/splice tests pass;
 2. server, security, and browser smoke tests pass;
-3. `redline --version`, `--help`, `--print-agent-protocol` work;
+3. `stet --version`, `--help`, `--print-agent-protocol` work;
 4. README documents install, usage, storage, security, formatter caveats, and agent protocol;
 5. release notes list MVP limitations;
 6. dogfood run against the master PRD or a byte-identical copy.

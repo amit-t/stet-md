@@ -2,7 +2,7 @@ import type { ReviewThread } from "./types.js";
 import { renderThreadBlock } from "./threadMarker.js";
 import { applyEol, type FileFormat } from "./fileFormat.js";
 import type { ThreadBlock } from "./parseThreads.js";
-import { RedlineError } from "./errors.js";
+import { StetError } from "./errors.js";
 
 /**
  * Byte-splice persistence. Edits are expressed as half-open char ranges with
@@ -24,13 +24,13 @@ export function applySplices(source: string, splices: Splice[]): string {
   for (let i = 0; i < sorted.length; i++) {
     const s = sorted[i]!;
     if (s.start < 0 || s.end > source.length || s.start > s.end) {
-      throw new RedlineError(
+      throw new StetError(
         "io_error",
         `splice [${s.start}, ${s.end}) is out of bounds for length ${source.length}`,
       );
     }
     if (i > 0 && s.start < sorted[i - 1]!.end) {
-      throw new RedlineError("io_error", "overlapping splices are not allowed");
+      throw new StetError("io_error", "overlapping splices are not allowed");
     }
   }
   // Apply descending so earlier offsets remain valid.

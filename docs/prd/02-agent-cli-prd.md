@@ -1,4 +1,4 @@
-# Redline PRD 02 — Agent-Safe CLI
+# Stet PRD 02 — Agent-Safe CLI
 
 ## Purpose
 
@@ -9,20 +9,20 @@ The CLI is not a convenience layer. It is the primary agent protocol and future 
 ## MVP commands
 
 ```zsh
-redline list --json FILE.md
-redline reply FILE.md --thread THREAD_ID --author Claude --message "..."
-redline resolve FILE.md --thread THREAD_ID --author Claude --message "..."
-redline --print-agent-protocol
+stet list --json FILE.md
+stet reply FILE.md --thread THREAD_ID --author Claude --message "..."
+stet resolve FILE.md --thread THREAD_ID --author Claude --message "..."
+stet --print-agent-protocol
 ```
 
 Also supported by the browser-launch command:
 
 ```zsh
-redline FILE.md
-redline --author "Amit" FILE.md
-redline --app "Google Chrome" FILE.md
-redline --port 43117 FILE.md
-redline --no-open FILE.md
+stet FILE.md
+stet --author "Amit" FILE.md
+stet --app "Google Chrome" FILE.md
+stet --port 43117 FILE.md
+stet --no-open FILE.md
 ```
 
 ## `list --json`
@@ -34,7 +34,7 @@ Returns deterministic JSON for agents:
   "file": "/abs/path/prd.md",
   "threads": [
     {
-      "id": "rlt_20260607_150015_7f3a9c",
+      "id": "stt_20260607_150015_7f3a9c",
       "status": "open",
       "target": {
         "kind": "heading",
@@ -79,10 +79,10 @@ Requirements:
 
 ## Agent protocol output
 
-`redline --print-agent-protocol` prints fallback manual-edit instructions:
+`stet --print-agent-protocol` prints fallback manual-edit instructions:
 
-1. Do not delete `redline:thread` blocks.
-2. Prefer `redline reply` and `redline resolve`.
+1. Do not delete `stet:thread` blocks.
+2. Prefer `stet reply` and `stet resolve`.
 3. If editing manually, add messages inside structured marker only.
 4. Use UTC timestamps.
 5. Do not hand-edit generated blockquote as source of truth.
@@ -90,11 +90,11 @@ Requirements:
 ## Post-MVP commands
 
 ```zsh
-redline comment FILE.md --target heading:"Product goals" --author Amit --message "..."
-redline strip-comments FILE.md --output clean.md
-redline export-comments FILE.md --format json
-redline doctor FILE.md
-redline repair FILE.md
+stet comment FILE.md --target heading:"Product goals" --author Amit --message "..."
+stet strip-comments FILE.md --output clean.md
+stet export-comments FILE.md --format json
+stet doctor FILE.md
+stet repair FILE.md
 ```
 
 ## Acceptance criteria

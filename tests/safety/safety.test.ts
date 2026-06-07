@@ -25,7 +25,7 @@ let dir: string;
 let file: string;
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "redline-safety-"));
+  dir = mkdtempSync(join(tmpdir(), "stet-safety-"));
   file = join(dir, "doc.md");
   writeFileSync(file, "# Doc\n\nBody.\n", "utf8");
 });
@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe("state dir + gitignore", () => {
-  it("creates .redline/.gitignore containing '*'", () => {
+  it("creates .stet/.gitignore containing '*'", () => {
     const p = ensureStateDir(file);
     expect(existsSync(p.root)).toBe(true);
     const gi = readFileSync(join(p.root, ".gitignore"), "utf8");
@@ -54,17 +54,17 @@ describe("atomic write", () => {
   it("replaces file content atomically and leaves no temp files", () => {
     writeFileAtomic(file, "new content\n");
     expect(readFileSync(file, "utf8")).toBe("new content\n");
-    const leftovers = readdirSync(dir).filter((n) => n.startsWith(".redline-tmp-"));
+    const leftovers = readdirSync(dir).filter((n) => n.startsWith(".stet-tmp-"));
     expect(leftovers).toEqual([]);
   });
 });
 
 describe("backups", () => {
-  it("writes a timestamped backup with short hash under .redline/backups", () => {
+  it("writes a timestamped backup with short hash under .stet/backups", () => {
     const content = readFileSync(file, "utf8");
     const now = new Date("2026-06-07T15:00:15Z");
     const path = createBackup(file, content, now);
-    expect(path).toMatch(/\.redline\/backups\/doc\.md\.20260607T150015Z\.[0-9a-f]{12}\.bak$/);
+    expect(path).toMatch(/\.stet\/backups\/doc\.md\.20260607T150015Z\.[0-9a-f]{12}\.bak$/);
     expect(readFileSync(path, "utf8")).toBe(content);
   });
 });

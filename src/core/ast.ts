@@ -29,7 +29,7 @@ export interface OffsetRange {
 }
 
 /**
- * Ranges of `code` (fenced/indented) and `inlineCode` nodes. The redline
+ * Ranges of `code` (fenced/indented) and `inlineCode` nodes. The stet
  * marker token can appear inside these legitimately (docs, examples) and must
  * not be parsed as a real thread block.
  */

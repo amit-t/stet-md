@@ -7,8 +7,8 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
  * security headers, and remote-resource blocking.
  */
 
-export const TOKEN_COOKIE_NAME = "redline_token";
-export const TOKEN_HEADER_NAME = "x-redline-token";
+export const TOKEN_COOKIE_NAME = "stet_token";
+export const TOKEN_HEADER_NAME = "x-stet-token";
 
 /** Cryptographically random session token (hex). */
 export function generateToken(bytes = 32): string {
@@ -165,7 +165,7 @@ export function blockRemoteResourcesInHtml(html: string): string {
     (full, attr: string, _q, dq: string, sq: string) => {
       const value = dq ?? sq ?? "";
       if (isRemoteResourceUrl(value)) {
-        return `${attr}="about:blank#redline-blocked-remote"`;
+        return `${attr}="about:blank#stet-blocked-remote"`;
       }
       return full;
     },

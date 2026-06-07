@@ -10,7 +10,7 @@ export type LockStatus = {
 };
 
 function lockPathFor(filePath: string): string {
-  const stateDir = join(dirname(filePath), ".redline");
+  const stateDir = join(dirname(filePath), ".stet");
   mkdirSync(join(stateDir, "locks"), { recursive: true });
   if (!existsSync(join(stateDir, ".gitignore"))) writeFileSync(join(stateDir, ".gitignore"), "*\n");
   const digest = createHash("sha256").update(filePath).digest("hex").slice(0, 20);
@@ -34,11 +34,11 @@ export function acquireLock(filePath: string, loadedHash: string, staleMs = 24 *
       const data = JSON.parse(readFileSync(lockPath, "utf8"));
       const stale = Date.now() - stat.mtimeMs > staleMs || !pidAlive(Number(data.pid));
       if (!stale) {
-        return { state: "active_lock", lockPath, message: `Another redline process (${data.pid}) appears to be reviewing this file.` };
+        return { state: "active_lock", lockPath, message: `Another stet process (${data.pid}) appears to be reviewing this file.` };
       }
       rmSync(lockPath, { force: true });
       writeFileSync(lockPath, JSON.stringify(lockData(filePath, loadedHash), null, 2));
-      return { state: "stale_recovered", lockPath, message: "Recovered stale redline lock." };
+      return { state: "stale_recovered", lockPath, message: "Recovered stale stet lock." };
     } catch {
       rmSync(lockPath, { force: true });
     }

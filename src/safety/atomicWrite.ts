@@ -19,7 +19,7 @@ import { randomBytes } from "node:crypto";
  */
 export function writeFileAtomic(targetPath: string, content: string): void {
   const dir = dirname(targetPath);
-  const tmp = join(dir, `.redline-tmp-${randomBytes(6).toString("hex")}`);
+  const tmp = join(dir, `.stet-tmp-${randomBytes(6).toString("hex")}`);
 
   // Preserve the original file mode when it exists.
   let mode = 0o644;

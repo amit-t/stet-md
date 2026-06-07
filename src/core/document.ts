@@ -5,9 +5,9 @@ import { createThreadId, hashBuffer, sourceHash } from "./hash.js";
 import { escapeHtml, stripMarkdownInline } from "./escape.js";
 import { parseMarkerBody, renderThreadBlock } from "./threadFormat.js";
 import { isoNow } from "./time.js";
-import { RedlineConflictError, RedlineNotFoundError, RedlineParseError } from "./errors.js";
+import { StetConflictError, StetNotFoundError, StetParseError } from "./errors.js";
 
-const THREAD_RE = /<!-- redline:thread\r?\n([\s\S]*?)-->\r?\n?([\s\S]*?)<!-- \/redline:thread -->\r?\n?/g;
+const THREAD_RE = /<!-- (?:stet|redline):thread\r?\n([\s\S]*?)-->\r?\n?([\s\S]*?)<!-- \/(?:stet|redline):thread -->\r?\n?/g;
 
 type Line = {
   index: number;
@@ -181,7 +181,7 @@ function renderInline(text: string, warnings: ReviewWarning[]): string {
   let safe = escapeHtml(text);
   safe = safe.replace(/!\[([^\]]*)\]\((?:https?:)?\/\/[^)]+\)/g, (_all, alt: string) => {
     warnings.push({ kind: "remote_resource_blocked", message: "Remote Markdown image was blocked by default." });
-    return `<span class="blocked-resource" data-redline-blocked-resource="image">remote image blocked: ${escapeHtml(alt)}</span>`;
+    return `<span class="blocked-resource" data-stet-blocked-resource="image">remote image blocked: ${escapeHtml(alt)}</span>`;
   });
   safe = safe.replace(/`([^`]+)`/g, "<code>$1</code>");
   safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_all, label: string, href: string) => {
@@ -249,7 +249,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       targets.push(target);
       blocks.push({
         type: "heading",
-        html: `<h${level} data-redline-target="${target.id}" tabindex="0">${renderInline(title, warnings)}</h${level}>`,
+        html: `<h${level} data-stet-target="${target.id}" tabindex="0">${renderInline(title, warnings)}</h${level}>`,
         range: target.byteRange!,
         lineStart: target.lineStart!,
         lineEnd: target.lineEnd!,
@@ -322,7 +322,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
     targets.push(target);
     blocks.push({
       type: "paragraph",
-      html: `<p data-redline-target="${target.id}" tabindex="0">${renderInline(paragraphSource.replace(/\n/g, " "), warnings)}</p>`,
+      html: `<p data-stet-target="${target.id}" tabindex="0">${renderInline(paragraphSource.replace(/\n/g, " "), warnings)}</p>`,
       range: target.byteRange!,
       lineStart: target.lineStart!,
       lineEnd: target.lineEnd!,
@@ -367,7 +367,7 @@ function attachThreads(threads: ReviewThread[], targets: ReviewTarget[], warning
 }
 
 export function loadReviewDocument(filePath: string, _options: LoadOptions = {}): ReviewDocument {
-  if (!existsSync(filePath)) throw new RedlineNotFoundError(`Markdown file not found: ${filePath}`);
+  if (!existsSync(filePath)) throw new StetNotFoundError(`Markdown file not found: ${filePath}`);
   const buffer = readFileSync(filePath);
   const text = buffer.toString("utf8");
   const lineEnding = detectLineEnding(text);
@@ -443,7 +443,7 @@ function applySplices(buffer: Buffer, splices: Splice[]): Buffer {
 }
 
 function ensureStateDir(filePath: string): string {
-  const stateDir = join(dirname(filePath), ".redline");
+  const stateDir = join(dirname(filePath), ".stet");
   mkdirSync(stateDir, { recursive: true });
   const gitignore = join(stateDir, ".gitignore");
   if (!existsSync(gitignore)) writeFileSync(gitignore, "*\n");
@@ -460,7 +460,7 @@ function writeAtomicWithBackup(filePath: string, before: Buffer, after: Buffer, 
     const backupPath = join(stateDir, "backups", `${basename(filePath)}.${timestamp}.${shortHash}.bak`);
     copyFileSync(filePath, backupPath);
   }
-  const tempPath = join(dirname(filePath), `.${basename(filePath)}.redline-${process.pid}-${Date.now()}.tmp`);
+  const tempPath = join(dirname(filePath), `.${basename(filePath)}.stet-${process.pid}-${Date.now()}.tmp`);
   writeFileSync(tempPath, after);
   renameSync(tempPath, filePath);
 }
@@ -469,11 +469,11 @@ export function saveReviewThreads(filePath: string, updates: ReviewThread[], opt
   const before = readFileSync(filePath);
   const currentHash = hashBuffer(before);
   if (options.expectedHash && options.expectedHash !== currentHash) {
-    throw new RedlineConflictError();
+    throw new StetConflictError();
   }
   const doc = loadReviewDocument(filePath);
   if (doc.errors.length > 0) {
-    throw new RedlineParseError(`Cannot save while ${doc.errors.length} malformed redline marker(s) exist.`);
+    throw new StetParseError(`Cannot save while ${doc.errors.length} malformed stet marker(s) exist.`);
   }
   const existingById = new Map(doc.threads.map((thread) => [thread.id, thread]));
   const splices: Splice[] = [];
@@ -490,7 +490,7 @@ export function saveReviewThreads(filePath: string, updates: ReviewThread[], opt
       continue;
     }
     const target = findInsertionTarget(doc, update);
-    if (!target || (target.kind !== "document" && !hasRenderedRange(target))) throw new RedlineNotFoundError(`Cannot find target for thread ${update.id}`);
+    if (!target || (target.kind !== "document" && !hasRenderedRange(target))) throw new StetNotFoundError(`Cannot find target for thread ${update.id}`);
     const insertAt = target.kind === "document" ? before.length : target.byteRange!.end;
     const list = inserts.get(insertAt) ?? [];
     list.push(update);
@@ -507,16 +507,16 @@ export function saveReviewThreads(filePath: string, updates: ReviewThread[], opt
   const reparsed = loadReviewDocument(filePath);
   const missing = updates.filter((thread) => !reparsed.threads.some((candidate) => candidate.id === thread.id));
   if (missing.length > 0 || reparsed.errors.length > 0) {
-    throw new RedlineParseError(`Saved file failed validation for thread(s): ${missing.map((thread) => thread.id).join(", ")}`);
+    throw new StetParseError(`Saved file failed validation for thread(s): ${missing.map((thread) => thread.id).join(", ")}`);
   }
   return reparsed;
 }
 
 export function appendReply(filePath: string, threadId: string, message: { author: string; bodyMarkdown: string; createdAt?: string }): ReviewDocument {
   const doc = loadReviewDocument(filePath);
-  if (doc.errors.length > 0) throw new RedlineParseError(`Cannot reply while ${doc.errors.length} malformed redline marker(s) exist.`);
+  if (doc.errors.length > 0) throw new StetParseError(`Cannot reply while ${doc.errors.length} malformed stet marker(s) exist.`);
   const thread = doc.threads.find((candidate) => candidate.id === threadId);
-  if (!thread) throw new RedlineNotFoundError(`Unknown thread: ${threadId}`);
+  if (!thread) throw new StetNotFoundError(`Unknown thread: ${threadId}`);
   const updated = cloneThread(thread);
   const createdAt = message.createdAt ?? isoNow();
   updated.messages.push({ author: message.author, bodyMarkdown: message.bodyMarkdown, createdAt });
@@ -534,9 +534,9 @@ export function reopenThread(filePath: string, threadId: string, message?: { aut
 
 export function setThreadStatus(filePath: string, threadId: string, status: "open" | "resolved", message?: { author: string; bodyMarkdown?: string; createdAt?: string }): ReviewDocument {
   const doc = loadReviewDocument(filePath);
-  if (doc.errors.length > 0) throw new RedlineParseError(`Cannot update status while ${doc.errors.length} malformed redline marker(s) exist.`);
+  if (doc.errors.length > 0) throw new StetParseError(`Cannot update status while ${doc.errors.length} malformed stet marker(s) exist.`);
   const thread = doc.threads.find((candidate) => candidate.id === threadId);
-  if (!thread) throw new RedlineNotFoundError(`Unknown thread: ${threadId}`);
+  if (!thread) throw new StetNotFoundError(`Unknown thread: ${threadId}`);
   const updated = cloneThread(thread);
   const timestamp = message?.createdAt ?? isoNow();
   updated.status = status;
@@ -552,9 +552,9 @@ export function previewThreadPatch(filePath: string, updates: ReviewThread[]): s
 
 export function createCommentBySelector(filePath: string, selector: string, author: string, message: string): ReviewDocument {
   const doc = loadReviewDocument(filePath);
-  if (doc.errors.length > 0) throw new RedlineParseError(`Cannot comment while ${doc.errors.length} malformed redline marker(s) exist.`);
+  if (doc.errors.length > 0) throw new StetParseError(`Cannot comment while ${doc.errors.length} malformed stet marker(s) exist.`);
   const target = selectTarget(doc, selector);
-  if (!target) throw new RedlineNotFoundError(`No target matched selector: ${selector}`);
+  if (!target) throw new StetNotFoundError(`No target matched selector: ${selector}`);
   const thread = createThreadForTarget(target, author, message);
   return saveReviewThreads(filePath, [thread], { expectedHash: doc.fileHash });
 }

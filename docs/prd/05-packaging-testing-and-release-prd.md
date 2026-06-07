@@ -1,18 +1,18 @@
-# Redline PRD 05 — Packaging, Testing, and Release Gates
+# Stet PRD 05 — Packaging, Testing, and Release Gates
 
 ## Purpose
 
-Ship Redline as a standalone utility that an implementation agent can build, test, and release safely.
+Ship Stet as a standalone utility that an implementation agent can build, test, and release safely.
 
 ## Package identity
 
-- Repo: `redline`
-- npm package: `redline-md`
-- Binary: `redline`
+- Repo: `stet`
+- npm package: `stet`
+- Binary: `stet`
 - Alias: `rl`
-- Marker: `redline:thread`
-- ID prefix: `rlt_`
-- State dir: `.redline/`
+- Marker: `stet:thread`
+- ID prefix: `stt_`
+- State dir: `.stet/`
 
 ## Recommended stack
 
@@ -30,7 +30,7 @@ Suggested future structure:
 
 ```text
 bin/
-  redline
+  stet
 src/
   cli/
   core/
@@ -86,7 +86,7 @@ Browser tests:
 - Open fixture.
 - Double-click paragraph.
 - Save comment.
-- Confirm file contains `redline:thread`.
+- Confirm file contains `stet:thread`.
 - Reload and see thread.
 - CLI reply appears in UI.
 - Resolve persists.
@@ -113,8 +113,8 @@ MVP release cannot ship unless:
 
 ## Acceptance criteria
 
-- `npm package` metadata uses `redline-md`.
-- Installed binary is `redline`; alias `rl` works if shipped.
-- `redline --version` and `redline --help` work.
+- `npm package` metadata uses `stet`.
+- Installed binary is `stet`; alias `rl` works if shipped.
+- `stet --version` and `stet --help` work.
 - CI runs unit, CLI, and browser smoke tests.
 - Release notes state MVP limitations: no list-item/table-row/text-range comments yet.

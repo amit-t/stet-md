@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { detectFileFormat, type FileFormat } from "../core/fileFormat.js";
 import { hashFileContent } from "../core/hash.js";
-import { RedlineError } from "../core/errors.js";
+import { StetError } from "../core/errors.js";
 import { createBackup } from "../safety/backups.js";
 import { writeFileAtomic } from "../safety/atomicWrite.js";
 import { inspectLock } from "../safety/locks.js";
@@ -28,12 +28,12 @@ export function loadDoc(path: string): LoadedDoc {
   } catch (e) {
     const err = e as NodeJS.ErrnoException;
     if (err.code === "ENOENT") {
-      throw new RedlineError("io_error", `no such file: ${path}`);
+      throw new StetError("io_error", `no such file: ${path}`);
     }
     if (err.code === "EISDIR") {
-      throw new RedlineError("io_error", `not a file: ${path}`);
+      throw new StetError("io_error", `not a file: ${path}`);
     }
-    throw new RedlineError("io_error", `cannot read ${path}: ${err.message}`);
+    throw new StetError("io_error", `cannot read ${path}: ${err.message}`);
   }
   return {
     absPath,
@@ -64,23 +64,23 @@ export function saveDoc(
   try {
     current = readFileSync(doc.absPath, "utf8");
   } catch (e) {
-    throw new RedlineError(
+    throw new StetError(
       "io_error",
       `cannot re-read ${doc.absPath}: ${(e as Error).message}`,
     );
   }
   if (hashFileContent(current) !== doc.hash) {
-    throw new RedlineError(
+    throw new StetError(
       "file_changed",
       `${doc.absPath} changed on disk since it was read; refusing to overwrite. Re-run the command.`,
     );
   }
 
-  // Warn (do not block) if another Redline instance holds an active lock.
+  // Warn (do not block) if another Stet instance holds an active lock.
   let lockWarning: string | undefined;
   const lock = inspectLock(doc.absPath);
   if (lock && lock.pid !== process.pid) {
-    lockWarning = `another Redline instance (pid ${lock.pid} on ${lock.hostname}) holds a lock on this file`;
+    lockWarning = `another Stet instance (pid ${lock.pid} on ${lock.hostname}) holds a lock on this file`;
   }
 
   const backupPath = createBackup(doc.absPath, current, now);

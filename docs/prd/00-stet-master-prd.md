@@ -1,13 +1,13 @@
-# Redline — Markdown Review Comments Utility — Thesis and PRD
+# Stet — Markdown Review Comments Utility — Thesis and PRD
 
 - **Date:** 2026-06-07
 - **Revision:** v2, with kid-Claude architecture review incorporated
 - **Status:** Draft thesis / product requirements document
-- **Name:** **Redline** — threaded review comments that live inside the Markdown
-- **GitHub repo:** `redline` (standalone; not part of this `Profiles` dotfiles repo)
-- **npm package:** `redline-md` (bare `redline` is taken by a stale package)
-- **Binary:** `redline` (alias `rl`) — e.g. `redline prd.md`
-- **On-disk marker token:** `redline:thread` · thread-ID prefix `rlt_` · state dir `.redline/`
+- **Name:** **Stet** — threaded review comments that live inside the Markdown
+- **GitHub repo:** `stet` (standalone; not part of this `Profiles` dotfiles repo)
+- **npm package:** `stet` (bare `stet` is taken by a stale package)
+- **Binary:** `stet` (alias `rl`) — e.g. `stet prd.md`
+- **On-disk marker token:** `stet:thread` · thread-ID prefix `stt_` · state dir `.stet/`
 - **Audience:** Amit, Codex/Claude/Devin agents, future implementer
 - **Related tools:** `mdview` / `mdv` browser preview, `mdvc` cMUX preview
 
@@ -52,7 +52,7 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 2. Amit runs:
 
    ```zsh
-   redline prd.md
+   stet prd.md
    ```
 
 3. Browser opens a rendered Markdown view.
@@ -60,8 +60,8 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 5. Amit saves.
 6. `prd.md` now contains machine-readable, human-readable comment threads.
 7. Amit gives `prd.md` back to the agent: “Look at the comments and let’s discuss.”
-8. Agent replies through `redline reply` or, as fallback, by editing the structured thread marker.
-9. Amit runs `redline prd.md` again and sees the full thread UI restored.
+8. Agent replies through `stet reply` or, as fallback, by editing the structured thread marker.
+9. Amit runs `stet prd.md` again and sees the full thread UI restored.
 
 ---
 
@@ -95,7 +95,7 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 
 ## 6. Recommended product shape
 
-Build this as a new standalone utility first: **`redline`** with alias **`rl`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
+Build this as a new standalone utility first: **`stet`** with alias **`rl`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
 
 Do not force it into the existing single-file `mdview` script immediately. `mdview` is a lightweight preview tool. Review comments require a local server, write endpoints, AST positions, byte-splice persistence, save conflict handling, UI state, and tests across file mutation. That is a different complexity class.
 
@@ -103,8 +103,8 @@ Recommended relationship:
 
 - `mdview`: fast read-only Markdown preview.
 - `mdvc`: cMUX native preview wrapper.
-- `redline` / `rl`: write-capable Markdown review and comment threading.
-- Later: `mdview --review file.md` can delegate to `redline` if installed.
+- `stet` / `rl`: write-capable Markdown review and comment threading.
+- Later: `mdview --review file.md` can delegate to `stet` if installed.
 
 This avoids bloating `mdview` while keeping user ergonomics familiar.
 
@@ -115,10 +115,10 @@ This avoids bloating `mdview` while keeping user ergonomics familiar.
 ### 7.1 Launch
 
 ```zsh
-redline path/to/file.md
+stet path/to/file.md
 rl path/to/file.md
-redline --app "Google Chrome" docs/prd.md
-redline --no-open docs/prd.md
+stet --app "Google Chrome" docs/prd.md
+stet --no-open docs/prd.md
 ```
 
 Default behavior:
@@ -191,7 +191,7 @@ Persist review threads as readable Markdown blocks bracketed by machine-readable
 Reason:
 
 - AI agents can read and modify the thread text without special tooling.
-- Markdown renderers still show useful context if opened without `redline`.
+- Markdown renderers still show useful context if opened without `stet`.
 - The utility can parse exact thread boundaries reliably.
 - Git diffs remain understandable.
 
@@ -231,7 +231,7 @@ The structured marker is the source of truth. The visible blockquote is generate
 
 Parser rule:
 
-- Read thread metadata and messages from the opening `redline:thread` comment.
+- Read thread metadata and messages from the opening `stet:thread` comment.
 - Do not parse messages from the blockquote as authoritative data.
 - If the blockquote diverges, regenerate it from structured data on save and surface a warning.
 - If the structured marker is malformed, show the raw block as broken and do not guess silently.
@@ -241,9 +241,9 @@ Parser rule:
 Use this Markdown shape:
 
 ```markdown
-<!-- redline:thread
+<!-- stet:thread
 version: 1
-id: rlt_20260607_150015_7f3a9c
+id: stt_20260607_150015_7f3a9c
 status: open
 created_at: 2026-06-07T15:00:15Z
 updated_at: 2026-06-07T15:00:15Z
@@ -261,20 +261,20 @@ messages:
       This section needs a goal about agents responding inside the file, not just reading comments.
 -->
 > [!NOTE]
-> **Review thread `rlt_20260607_150015_7f3a9c` — open**
+> **Review thread `stt_20260607_150015_7f3a9c` — open**
 >
 > **Amit** · 2026-06-07 20:30 IST
 >
 > This section needs a goal about agents responding inside the file, not just reading comments.
-<!-- /redline:thread -->
+<!-- /stet:thread -->
 ```
 
-Agent reply after `redline reply`:
+Agent reply after `stet reply`:
 
 ```markdown
-<!-- redline:thread
+<!-- stet:thread
 version: 1
-id: rlt_20260607_150015_7f3a9c
+id: stt_20260607_150015_7f3a9c
 status: open
 created_at: 2026-06-07T15:00:15Z
 updated_at: 2026-06-07T15:32:44Z
@@ -296,7 +296,7 @@ messages:
       Agreed. I added that as goal 6 and will treat the thread block as the response channel.
 -->
 > [!NOTE]
-> **Review thread `rlt_20260607_150015_7f3a9c` — open**
+> **Review thread `stt_20260607_150015_7f3a9c` — open**
 >
 > **Amit** · 2026-06-07 20:30 IST
 >
@@ -305,7 +305,7 @@ messages:
 > **Claude** · 2026-06-07 21:02 IST
 >
 > Agreed. I added that as goal 6 and will treat the thread block as the response channel.
-<!-- /redline:thread -->
+<!-- /stet:thread -->
 ```
 
 Notes:
@@ -369,26 +369,26 @@ Agents should prefer CLI commands because the CLI supplies current time, IDs, es
 MVP agent commands:
 
 ```zsh
-redline list --json FILE.md
-redline reply FILE.md --thread rlt_20260607_150015_7f3a9c --author Claude --message "Agreed. I changed goal 6."
-redline resolve FILE.md --thread rlt_20260607_150015_7f3a9c --author Claude --message "Resolved by the edit above."
+stet list --json FILE.md
+stet reply FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Agreed. I changed goal 6."
+stet resolve FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Resolved by the edit above."
 ```
 
 Post-MVP agent commands:
 
 ```zsh
-redline comment FILE.md --target heading:"Product goals" --author Claude --message "Question about this section."
-redline strip-comments FILE.md --output clean.md
-redline export-comments FILE.md --format json
+stet comment FILE.md --target heading:"Product goals" --author Claude --message "Question about this section."
+stet strip-comments FILE.md --output clean.md
+stet export-comments FILE.md --format json
 ```
 
 ### 10.2 Fallback path: manual raw Markdown edit
 
-If CLI is unavailable, agents may edit the `messages:` list inside the `redline:thread` marker.
+If CLI is unavailable, agents may edit the `messages:` list inside the `stet:thread` marker.
 
 Rules for agents:
 
-1. Do not delete `<!-- redline:thread ... -->` blocks unless explicitly asked.
+1. Do not delete `<!-- stet:thread ... -->` blocks unless explicitly asked.
 2. Add replies as new `messages:` entries inside the marker.
 3. Use author `Agent`, `Codex`, `Claude`, or a configured name.
 4. Use UTC ISO 8601 timestamps ending in `Z`.
@@ -397,7 +397,7 @@ Rules for agents:
 7. Do not edit the generated visible blockquote by hand unless also updating structured data.
 8. If unsure, leave the thread open and ask in the thread.
 
-This protocol should be included in `README.md`, `docs/AGENT_PROTOCOL.md`, and `redline --print-agent-protocol`.
+This protocol should be included in `README.md`, `docs/AGENT_PROTOCOL.md`, and `stet --print-agent-protocol`.
 
 ---
 
@@ -413,8 +413,8 @@ On Save:
 2. Check file hash against the version loaded in the browser.
 3. If unchanged, apply thread insertions/updates by byte splice.
 4. Write to a temp file in the same directory.
-5. Maintain backups under `.redline/backups/`.
-6. Ensure `.redline/.gitignore` contains `*` so backups and transient files do not leak into commits.
+5. Maintain backups under `.stet/backups/`.
+6. Ensure `.stet/.gitignore` contains `*` so backups and transient files do not leak into commits.
 7. Atomic rename temp file over original.
 8. Reparse saved file and confirm every written thread is readable.
 9. Show “Saved” only after validation passes.
@@ -434,7 +434,7 @@ MVP can implement option 1 and option 2. Force save should not ship until patch 
 
 ### 11.3 Multiple writers
 
-MVP should detect two `redline` instances on one file and warn. Use a lock file under `.redline/locks/` containing PID, hostname, started-at timestamp, and file hash. If the PID is gone or the lock mtime is stale, show a recoverable stale-lock warning. Last-write-wins behavior is unacceptable without a warning.
+MVP should detect two `stet` instances on one file and warn. Use a lock file under `.stet/locks/` containing PID, hostname, started-at timestamp, and file hash. If the PID is gone or the lock mtime is stale, show a recoverable stale-lock warning. Last-write-wins behavior is unacceptable without a warning.
 
 ---
 
@@ -470,7 +470,7 @@ Reasoning:
 ## 13. System architecture
 
 ```text
-redline CLI
+stet CLI
   ├─ resolves file path
   ├─ starts local review server
   ├─ opens browser
@@ -486,9 +486,9 @@ Local review server
 
 Markdown engine
   ├─ parse Markdown to AST with source positions
-  ├─ strip/parse redline thread blocks from source bytes
+  ├─ strip/parse stet thread blocks from source bytes
   ├─ assign stable block IDs
-  ├─ render body HTML with data-redline-target IDs
+  ├─ render body HTML with data-stet-target IDs
   ├─ associate threads to targets
   ├─ generate visible thread blockquotes from structured marker data
   └─ compute byte-splice edits for inserts/replacements
@@ -510,28 +510,28 @@ Browser UI
 MVP commands:
 
 ```zsh
-redline FILE.md
-redline --author "Amit" FILE.md
-redline --app "Google Chrome" FILE.md
-redline --port 43117 FILE.md
-redline --no-open FILE.md
-redline list --json FILE.md
-redline reply FILE.md --thread THREAD_ID --author Claude --message "..."
-redline resolve FILE.md --thread THREAD_ID --author Claude --message "..."
-redline --print-agent-protocol
-redline --version
-redline --help
+stet FILE.md
+stet --author "Amit" FILE.md
+stet --app "Google Chrome" FILE.md
+stet --port 43117 FILE.md
+stet --no-open FILE.md
+stet list --json FILE.md
+stet reply FILE.md --thread THREAD_ID --author Claude --message "..."
+stet resolve FILE.md --thread THREAD_ID --author Claude --message "..."
+stet --print-agent-protocol
+stet --version
+stet --help
 ```
 
 Later commands:
 
 ```zsh
-redline --export-comments json FILE.md
-redline --strip-comments FILE.md
-redline --list-comments FILE.md
-redline --storage inline|appendix FILE.md
-redline --readonly FILE.md
-redline comment FILE.md --target heading:"Product goals" --author Amit --message "..."
+stet --export-comments json FILE.md
+stet --strip-comments FILE.md
+stet --list-comments FILE.md
+stet --storage inline|appendix FILE.md
+stet --readonly FILE.md
+stet comment FILE.md --target heading:"Product goals" --author Amit --message "..."
 ```
 
 ---
@@ -615,8 +615,8 @@ In scope:
 3. Double-click a heading or paragraph and write a comment.
 4. Save comment into the same Markdown file as an inline thread block using byte splices.
 5. Reopen the same file and see the thread restored beside the target.
-6. Run `redline list --json FILE.md` and see the thread.
-7. Run `redline reply FILE.md --thread ID --author Claude --message "..."`.
+6. Run `stet list --json FILE.md` and see the thread.
+7. Run `stet reply FILE.md --thread ID --author Claude --message "..."`.
 8. Reopen and see the CLI-added reply in the browser thread.
 9. Mark thread resolved through browser or CLI and save status back to Markdown.
 10. Detect whole-file external modification before overwrite.
@@ -709,7 +709,7 @@ Browser tests begin after parser and splice writer are reliable:
 - Double-clicks a paragraph.
 - Enters comment text.
 - Saves.
-- Confirms file contains `redline:thread` block.
+- Confirms file contains `stet:thread` block.
 - Reloads page.
 - Confirms thread appears in side panel.
 - Resolves thread.
@@ -721,10 +721,10 @@ Browser tests begin after parser and splice writer are reliable:
 Use the tool on this PRD itself:
 
 ```zsh
-redline docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md
+stet docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md
 ```
 
-Add review comments, save, hand the file to an agent, ask it to respond via `redline reply`, reopen.
+Add review comments, save, hand the file to an agent, ask it to respond via `stet reply`, reopen.
 
 ---
 
@@ -732,7 +732,7 @@ Add review comments, save, hand the file to an agent, ask it to respond via `red
 
 ### Risk: Markdown gets noisy
 
-Mitigation: keep thread blocks compact, use generated `[!NOTE]` blockquotes, collapse in `redline` UI, and optionally support appendix storage later.
+Mitigation: keep thread blocks compact, use generated `[!NOTE]` blockquotes, collapse in `stet` UI, and optionally support appendix storage later.
 
 ### Risk: Anchors break after agent rewrites document
 
@@ -744,11 +744,11 @@ Mitigation: do not use pure `file://`; use a local loopback server with authenti
 
 ### Risk: Existing `mdview` becomes bloated
 
-Mitigation: build standalone `redline` first. Integrate only through delegation once stable.
+Mitigation: build standalone `stet` first. Integrate only through delegation once stable.
 
 ### Risk: Agents corrupt thread format
 
-Mitigation: provide `redline list/reply/resolve` CLI commands as the blessed agent path. Keep manual edits as fallback. Parser should fail loudly on malformed structured markers and preserve raw content.
+Mitigation: provide `stet list/reply/resolve` CLI commands as the blessed agent path. Keep manual edits as fallback. Parser should fail loudly on malformed structured markers and preserve raw content.
 
 ### Risk: Full-document rewrites destroy trust
 
@@ -760,7 +760,7 @@ Mitigation: sanitize by default, reject unsafe host headers, use cookie/header t
 
 ### Risk: Backups leak into git
 
-Mitigation: store backups under `.redline/backups/` and auto-create `.redline/.gitignore` containing `*`.
+Mitigation: store backups under `.stet/backups/` and auto-create `.stet/.gitignore` containing `*`.
 
 ### Risk: Formatters damage thread blocks
 
@@ -772,12 +772,12 @@ Mitigation: document formatter limitations, include `version: 1`, prefer CLI ope
 
 The first successful release is done when all of these are true:
 
-1. Amit can run `redline prd.md` and browser opens.
+1. Amit can run `stet prd.md` and browser opens.
 2. Double-clicking a heading or paragraph opens a comment composer.
 3. Saving writes a readable structured thread block into `prd.md`.
 4. Save preserves all untouched bytes exactly.
 5. An AI agent can read the raw Markdown and understand the comment target, timestamp, author, status, and requested discussion.
-6. An AI agent can run `redline reply` to append a response.
+6. An AI agent can run `stet reply` to append a response.
 7. Reopening `prd.md` shows the human comment and agent reply in one thread.
 8. Resolved/open status survives save and reopen.
 9. External file modifications are detected before overwrite.
@@ -788,11 +788,11 @@ The first successful release is done when all of these are true:
 
 ## 22. Recommendation
 
-Build `redline` as a separate TypeScript local-server utility with Markdown-embedded structured thread blocks and byte-splice persistence.
+Build `stet` as a separate TypeScript local-server utility with Markdown-embedded structured thread blocks and byte-splice persistence.
 
 The critical product decision is not the renderer; it is the storage contract. Once comments live in the Markdown in a predictable, agent-friendly thread format, every other surface can be swapped later: browser UI, cMUX panel, CLI summary, GitHub export, or agent-specific workflows.
 
-Start with heading/paragraph comments, inline thread blocks, explicit Save, `list/reply/resolve` CLI, and agent protocol. Dogfood it on AI-generated PRDs immediately. Only then decide whether to fold it into `mdview`, keep it standalone, or create a shared `mdview`/`redline` family.
+Start with heading/paragraph comments, inline thread blocks, explicit Save, `list/reply/resolve` CLI, and agent protocol. Dogfood it on AI-generated PRDs immediately. Only then decide whether to fold it into `mdview`, keep it standalone, or create a shared `mdview`/`stet` family.
 
 ---
 

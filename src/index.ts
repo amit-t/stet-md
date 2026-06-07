@@ -1,5 +1,5 @@
 /**
- * redline-md — public API.
+ * stet — public API.
  * Storage core + safety primitives + CLI runner.
  */
 export * from "./core/index.js";

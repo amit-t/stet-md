@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 /**
- * Thread IDs: `rlt_<YYYYMMDD>_<HHMMSS>_<6 hex>` in UTC.
+ * Thread IDs: `stt_<YYYYMMDD>_<HHMMSS>_<6 hex>` in UTC.
  * The timestamp is human-scannable; the random suffix guarantees uniqueness
  * within the same second.
  */
@@ -13,10 +13,10 @@ export function generateThreadId(now: Date = new Date()): string {
   const time =
     `${p(now.getUTCHours())}${p(now.getUTCMinutes())}${p(now.getUTCSeconds())}`;
   const rand = randomBytes(3).toString("hex");
-  return `rlt_${date}_${time}_${rand}`;
+  return `stt_${date}_${time}_${rand}`;
 }
 
-const ID_RE = /^rlt_\d{8}_\d{6}_[0-9a-f]{6}$/;
+const ID_RE = /^stt_\d{8}_\d{6}_[0-9a-f]{6}$/;
 
 export function isThreadId(value: string): boolean {
   return ID_RE.test(value);

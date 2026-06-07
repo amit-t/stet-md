@@ -1,5 +1,5 @@
 /**
- * Comment-body escaping for the structured `redline:thread` marker.
+ * Comment-body escaping for the structured `stet:thread` marker.
  *
  * The marker body lives inside an HTML comment (`<!-- ... -->`). A literal
  * `-->` in a message body would close the comment early, and per the HTML

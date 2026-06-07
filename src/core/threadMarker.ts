@@ -8,10 +8,10 @@ import type {
 } from "./types.js";
 import { encodeCommentBody, decodeCommentBody } from "./encode.js";
 import { renderBlockquote } from "./renderThread.js";
-import { RedlineError } from "./errors.js";
+import { StetError } from "./errors.js";
 
 /**
- * Serialize / parse the structured `redline:thread` marker.
+ * Serialize / parse the structured `stet:thread` marker.
  *
  * Serialization is hand-rolled for byte-deterministic output (golden tests
  * assert exact bytes). Parsing uses js-yaml so agent hand-edits to the
@@ -19,8 +19,10 @@ import { RedlineError } from "./errors.js";
  * comment-escaped message bodies.
  */
 
-export const OPEN_MARKER = "<!-- redline:thread";
-export const CLOSE_MARKER = "<!-- /redline:thread -->";
+export const OPEN_MARKER = "<!-- stet:thread";
+export const CLOSE_MARKER = "<!-- /stet:thread -->";
+export const LEGACY_OPEN_MARKER = "<!-- redline:thread";
+export const LEGACY_CLOSE_MARKER = "<!-- /redline:thread -->";
 
 const VALID_STATUS: ThreadStatus[] = ["open", "resolved"];
 const VALID_KIND: TargetKind[] = [
@@ -132,7 +134,7 @@ export function renderThreadBlock(thread: ReviewThread): string {
 // ---------------------------------------------------------------------------
 
 function fail(message: string, baseLine: number): never {
-  throw new RedlineError("malformed_marker", message, { line: baseLine });
+  throw new StetError("malformed_marker", message, { line: baseLine });
 }
 
 function asString(v: unknown, field: string, baseLine: number): string {
@@ -234,7 +236,7 @@ export function parseMarker(
   } catch (e) {
     const mark = (e as { mark?: { line?: number } }).mark;
     const line = baseLine + (mark?.line ?? 0);
-    throw new RedlineError(
+    throw new StetError(
       "malformed_marker",
       `marker YAML is invalid: ${(e as Error).message}`,
       { line },

@@ -20,21 +20,21 @@ function packageVersion(): string {
 }
 
 function help(): string {
-  return `Redline — local Markdown review comments
+  return `Stet — local Markdown review comments
 
 Usage:
-  redline FILE.md [--author NAME] [--app APP] [--port PORT] [--no-open]
-  redline list --json FILE.md
-  redline reply FILE.md --thread THREAD_ID --author NAME --message MESSAGE
-  redline resolve FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
-  redline reopen FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
-  redline comment FILE.md --target paragraph:0 --author NAME --message MESSAGE
-  redline --print-agent-protocol
-  redline --version
-  redline --help
+  stet FILE.md [--author NAME] [--app APP] [--port PORT] [--no-open]
+  stet list --json FILE.md
+  stet reply FILE.md --thread THREAD_ID --author NAME --message MESSAGE
+  stet resolve FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
+  stet reopen FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
+  stet comment FILE.md --target paragraph:0 --author NAME --message MESSAGE
+  stet --print-agent-protocol
+  stet --version
+  stet --help
 
 Storage:
-  Threads are stored inside the Markdown file as redline:thread blocks.
+  Threads are stored inside the Markdown file as stet:thread blocks.
 `;
 }
 
@@ -112,7 +112,7 @@ async function launch(filePath: string, args: ParsedArgs): Promise<void> {
     port: portFlag ? Number.parseInt(portFlag, 10) : undefined,
     openBrowser: !args.flags.has("no-open"),
   });
-  console.log(`Redline server: ${server.url}`);
+  console.log(`Stet server: ${server.url}`);
   if (server.lockStatus.message) console.warn(server.lockStatus.message);
   await new Promise<void>((resolveStop) => {
     const stop = async () => {

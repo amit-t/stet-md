@@ -2,14 +2,16 @@ import type { ReviewThread } from "./types.js";
 import {
   OPEN_MARKER,
   CLOSE_MARKER,
+  LEGACY_OPEN_MARKER,
+  LEGACY_CLOSE_MARKER,
   parseMarker,
 } from "./threadMarker.js";
 import { renderBlockquote } from "./renderThread.js";
 import { parseAst, codeRanges, type OffsetRange } from "./ast.js";
-import { RedlineError, isRedlineError } from "./errors.js";
+import { StetError, isStetError } from "./errors.js";
 
 /**
- * Scan raw Markdown source for `redline:thread` blocks, recording exact byte
+ * Scan raw Markdown source for `stet:thread` blocks, recording exact byte
  * (character) ranges so the splice writer can replace a block without touching
  * any surrounding byte. The structured marker is the authoritative source; the
  * visible blockquote is only checked for divergence and never parsed for data.
@@ -27,12 +29,12 @@ export interface ThreadBlock {
   /** Generated blockquote differs from the one on disk. */
   diverged: boolean;
   /** Set when the marker could not be parsed. */
-  error?: RedlineError;
+  error?: StetError;
 }
 
 export interface ScanResult {
   blocks: ThreadBlock[];
-  errors: RedlineError[];
+  errors: StetError[];
 }
 
 function lineOf(source: string, index: number): number {
@@ -54,12 +56,12 @@ function blockquoteText(between: string): string {
 
 export function scanThreadBlocks(source: string): ScanResult {
   const blocks: ThreadBlock[] = [];
-  const errors: RedlineError[] = [];
+  const errors: StetError[] = [];
 
   // The marker token can appear legitimately inside fenced/indented code and
   // inline code (docs, examples). Those occurrences are NOT real thread blocks.
   let code: OffsetRange[] = [];
-  if (source.includes(OPEN_MARKER)) {
+  if (source.includes(OPEN_MARKER) || source.includes(LEGACY_OPEN_MARKER)) {
     try {
       code = codeRanges(parseAst(source));
     } catch {
@@ -72,22 +74,27 @@ export function scanThreadBlocks(source: string): ScanResult {
   let cursor = 0;
 
   while (true) {
-    const openStart = source.indexOf(OPEN_MARKER, cursor);
-    if (openStart === -1) break;
+    const nextModern = source.indexOf(OPEN_MARKER, cursor);
+    const nextLegacy = source.indexOf(LEGACY_OPEN_MARKER, cursor);
+    if (nextModern === -1 && nextLegacy === -1) break;
+    const useLegacy = nextModern === -1 || (nextLegacy !== -1 && nextLegacy < nextModern);
+    const openMarker = useLegacy ? LEGACY_OPEN_MARKER : OPEN_MARKER;
+    const closeMarker = useLegacy ? LEGACY_CLOSE_MARKER : CLOSE_MARKER;
+    const openStart = useLegacy ? nextLegacy : nextModern;
     if (inCode(openStart)) {
-      cursor = openStart + OPEN_MARKER.length;
+      cursor = openStart + openMarker.length;
       continue;
     }
 
-    const afterOpen = openStart + OPEN_MARKER.length;
+    const afterOpen = openStart + openMarker.length;
     // The opening comment closes at the first `-->`. Encoded marker bodies
     // never contain `-->`, so this is unambiguous.
     const arrowIdx = source.indexOf("-->", afterOpen);
     if (arrowIdx === -1) {
       const startLine = lineOf(source, openStart);
-      const err = new RedlineError(
+      const err = new StetError(
         "malformed_marker",
-        "unterminated redline:thread marker: opening comment has no `-->`",
+        "unterminated stet:thread marker: opening comment has no `-->`",
         { line: startLine },
       );
       errors.push(err);
@@ -108,11 +115,11 @@ export function scanThreadBlocks(source: string): ScanResult {
     // Marker inner begins on the line after the opening marker line.
     const baseLine = startLine + 1;
 
-    const closeIdx = source.indexOf(CLOSE_MARKER, afterArrow);
+    const closeIdx = source.indexOf(closeMarker, afterArrow);
     if (closeIdx === -1) {
-      const err = new RedlineError(
+      const err = new StetError(
         "malformed_marker",
-        `redline:thread block has no closing \`${CLOSE_MARKER}\``,
+        `stet:thread block has no closing \`${closeMarker}\``,
         { line: startLine },
       );
       errors.push(err);
@@ -126,18 +133,18 @@ export function scanThreadBlocks(source: string): ScanResult {
       break;
     }
 
-    const blockEnd = closeIdx + CLOSE_MARKER.length;
+    const blockEnd = closeIdx + closeMarker.length;
     const raw = source.slice(openStart, blockEnd);
     const between = blockquoteText(source.slice(afterArrow, closeIdx));
 
     let thread: ReviewThread | undefined;
-    let error: RedlineError | undefined;
+    let error: StetError | undefined;
     try {
       thread = parseMarker(inner, { baseLine });
     } catch (e) {
-      error = isRedlineError(e)
+      error = isStetError(e)
         ? e
-        : new RedlineError("malformed_marker", String(e), { line: baseLine });
+        : new StetError("malformed_marker", String(e), { line: baseLine });
       errors.push(error);
     }
 

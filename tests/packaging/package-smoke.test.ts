@@ -8,10 +8,11 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 describe("package metadata and CLI smoke", () => {
   test("npm identity and binaries match PRD", () => {
-    expect(packageJson.name).toBe("redline-md");
+    expect(packageJson.name).toBe("stet");
+    expect(packageJson.bin.stet).toBe("dist/cli/main.js");
+    expect(packageJson.bin.s).toBe("dist/cli/main.js");
     expect(packageJson.bin.redline).toBe("dist/cli/main.js");
     expect(packageJson.bin.rl).toBe("dist/cli/main.js");
-    expect(packageJson.bin["redline-md"]).toBe("dist/cli/main.js");
   });
 
   test("built CLI exposes help, version, and agent protocol", () => {
@@ -20,15 +21,15 @@ describe("package metadata and CLI smoke", () => {
     expect(version).toBe(packageJson.version);
 
     const help = execFileSync("node", ["dist/cli/main.js", "--help"], { encoding: "utf8" });
-    expect(help).toContain("redline FILE.md");
-    expect(help).toContain("redline list --json FILE.md");
+    expect(help).toContain("stet FILE.md");
+    expect(help).toContain("stet list --json FILE.md");
 
     const protocol = execFileSync("node", ["dist/cli/main.js", "--print-agent-protocol"], { encoding: "utf8" });
-    expect(protocol).toContain("Do not delete `redline:thread` blocks");
+    expect(protocol).toContain("Do not delete `stet:thread` blocks");
   });
 
   test("list, reply, resolve commands work without browser server", () => {
-    const dir = mkdtempSync(join(tmpdir(), "redline-cli-"));
+    const dir = mkdtempSync(join(tmpdir(), "stet-cli-"));
     const file = join(dir, "fixture.md");
     writeFileSync(file, "# Title\n\nParagraph.\n");
 
@@ -45,14 +46,14 @@ describe("package metadata and CLI smoke", () => {
     expect(resolved.threads[0].messages.map((message: { bodyMarkdown: string }) => message.bodyMarkdown)).toEqual(["CLI comment", "Agent reply", "Resolved"]);
   });
   test("CLI exits nonzero for unknown thread and malformed marker", () => {
-    const dir = mkdtempSync(join(tmpdir(), "redline-cli-error-"));
+    const dir = mkdtempSync(join(tmpdir(), "stet-cli-error-"));
     const file = join(dir, "fixture.md");
     writeFileSync(file, "# Title\n\nParagraph.\n");
 
-    expect(() => execFileSync("node", ["dist/cli/main.js", "reply", file, "--thread", "rlt_missing", "--author", "Claude", "--message", "Nope"], { encoding: "utf8", stdio: "pipe" })).toThrow();
+    expect(() => execFileSync("node", ["dist/cli/main.js", "reply", file, "--thread", "stt_missing", "--author", "Claude", "--message", "Nope"], { encoding: "utf8", stdio: "pipe" })).toThrow();
 
     const malformed = join(dir, "malformed.md");
-    writeFileSync(malformed, "# Title\n\n<!-- redline:thread\nid: broken\n-->\n<!-- /redline:thread -->\n");
+    writeFileSync(malformed, "# Title\n\n<!-- stet:thread\nid: broken\n-->\n<!-- /stet:thread -->\n");
     expect(() => execFileSync("node", ["dist/cli/main.js", "list", "--json", malformed], { encoding: "utf8", stdio: "pipe" })).toThrow();
   });
 
@@ -70,9 +71,9 @@ describe("package metadata and CLI smoke", () => {
     expect(readme).toContain("pnpm install");
     expect(readme).toContain("pnpm run build");
     expect(readme).toContain("pnpm link --global");
-    expect(readme).toContain("npx redline-md@latest README.md");
-    expect(readme).toContain("pnpm dlx redline-md README.md");
-    expect(readme).toContain("npm install -g redline-md");
+    expect(readme).toContain("npx stet@latest README.md");
+    expect(readme).toContain("pnpm dlx stet README.md");
+    expect(readme).toContain("npm install -g stet");
   });
 
 });

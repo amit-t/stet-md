@@ -35,11 +35,11 @@ describe("splice writer — insertion", () => {
   it("inserts a new heading comment after the heading line", () => {
     const src = "# Title\n\n## Product goals\n\nSome body paragraph here.\n";
     const { out, offset } = insertComment(src, 'heading:Product goals');
-    expect(out).toContain("<!-- redline:thread");
+    expect(out).toContain("<!-- stet:thread");
     expect(out).toContain(CLOSE_MARKER);
     // Inserted after the heading, before the body paragraph.
     const headingIdx = out.indexOf("## Product goals");
-    const blockIdx = out.indexOf("<!-- redline:thread");
+    const blockIdx = out.indexOf("<!-- stet:thread");
     const bodyIdx = out.indexOf("Some body paragraph");
     expect(headingIdx).toBeLessThan(blockIdx);
     expect(blockIdx).toBeLessThan(bodyIdx);
@@ -50,7 +50,7 @@ describe("splice writer — insertion", () => {
     const src = "# Title\n\nFirst paragraph text.\n\nSecond paragraph text.\n";
     const { out, offset } = insertComment(src, "paragraph:1");
     const firstIdx = out.indexOf("First paragraph text.");
-    const blockIdx = out.indexOf("<!-- redline:thread");
+    const blockIdx = out.indexOf("<!-- stet:thread");
     const secondIdx = out.indexOf("Second paragraph text.");
     expect(firstIdx).toBeLessThan(blockIdx);
     expect(blockIdx).toBeLessThan(secondIdx);
@@ -60,7 +60,7 @@ describe("splice writer — insertion", () => {
   it("inserts a document-level comment at end of file", () => {
     const src = "# Title\n\nBody.\n";
     const { out, offset } = insertComment(src, "document");
-    expect(out.indexOf("<!-- redline:thread")).toBeGreaterThan(
+    expect(out.indexOf("<!-- stet:thread")).toBeGreaterThan(
       out.indexOf("Body."),
     );
     expectBytesOutsideInsertPreserved(src, out, offset);
@@ -158,7 +158,7 @@ describe("splice writer — byte fidelity across file conventions", () => {
   it("uses CRLF in the inserted block for CRLF files", () => {
     const src = "## Product goals\r\n\r\nBody line.\r\n";
     const { out } = insertComment(src, "heading:Product goals");
-    const blockStart = out.indexOf("<!-- redline:thread");
+    const blockStart = out.indexOf("<!-- stet:thread");
     const blockEnd = out.indexOf(CLOSE_MARKER) + CLOSE_MARKER.length;
     const block = out.slice(blockStart, blockEnd);
     expect(block).toContain("\r\n");

@@ -1,4 +1,4 @@
-type RedlineFetch = (input: string, init?: RequestInit) => Promise<Response>;
+type StetFetch = (input: string, init?: RequestInit) => Promise<Response>;
 
 type UiTarget = {
   id: string;
@@ -33,17 +33,17 @@ type UiDocument = {
   errors: { message: string; lineStart?: number; lineEnd?: number }[];
 };
 
-export type RedlineApp = {
+export type StetApp = {
   start(): Promise<void>;
   flush(): Promise<void>;
 };
 
 type AppOptions = {
   window: Window & typeof globalThis;
-  fetch: RedlineFetch;
+  fetch: StetFetch;
 };
 
-export function createRedlineApp(options: AppOptions): RedlineApp {
+export function createStetApp(options: AppOptions): StetApp {
   const win = options.window;
   const doc = win.document;
   const fetcher = options.fetch;
@@ -76,8 +76,8 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
   }
 
   function draftKey(targetId: string): string {
-    if (!state) return `redline:draft:unknown:${targetId}`;
-    return `redline:draft:${state.filePath}:${state.fileHash}:${targetId}`;
+    if (!state) return `stet:draft:unknown:${targetId}`;
+    return `stet:draft:${state.filePath}:${state.fileHash}:${targetId}`;
   }
 
   function hasOpenDraft(): boolean {
@@ -107,7 +107,7 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
     if (!state) return;
     const messages: string[] = [];
     if (state.conflict.changedOnDisk) messages.push(state.conflict.message || "File changed on disk.");
-    if (state.errors.length > 0) messages.push(`Malformed Redline marker: ${state.errors.map((error) => error.message).join("; ")}`);
+    if (state.errors.length > 0) messages.push(`Malformed Stet marker: ${state.errors.map((error) => error.message).join("; ")}`);
     const warningText = state.warnings.map((warning) => warning.message).join(" ");
     if (warningText) messages.push(warningText);
     banner.textContent = messages.join(" ");
@@ -115,15 +115,15 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
   }
 
   function enhanceTargets(): void {
-    for (const element of Array.from(documentRoot.querySelectorAll<HTMLElement>("[data-redline-target]"))) {
+    for (const element of Array.from(documentRoot.querySelectorAll<HTMLElement>("[data-stet-target]"))) {
       if (element.querySelector(".target-plus")) continue;
-      const targetId = element.dataset.redlineTarget;
+      const targetId = element.dataset.stetTarget;
       const button = doc.createElement("button");
       button.type = "button";
       button.className = "target-plus";
       button.dataset.action = "quick-comment";
       button.dataset.targetId = targetId;
-      button.title = "Add Redline comment";
+      button.title = "Add Stet comment";
       button.textContent = "+";
       element.appendChild(button);
     }
@@ -255,8 +255,8 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
   }
 
   documentRoot.addEventListener("dblclick", (event) => {
-    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-redline-target]");
-    if (target?.dataset.redlineTarget) openComposer(target.dataset.redlineTarget, selectedText());
+    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-stet-target]");
+    if (target?.dataset.stetTarget) openComposer(target.dataset.stetTarget, selectedText());
   });
 
   documentRoot.addEventListener("click", (event) => {
@@ -267,10 +267,10 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
   documentRoot.addEventListener("keydown", (event) => {
     if (!(event instanceof win.KeyboardEvent)) return;
     if (event.key.toLowerCase() !== "c") return;
-    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-redline-target]");
-    if (target?.dataset.redlineTarget) {
+    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-stet-target]");
+    if (target?.dataset.stetTarget) {
       event.preventDefault();
-      openComposer(target.dataset.redlineTarget, selectedText());
+      openComposer(target.dataset.stetTarget, selectedText());
     }
   });
 
@@ -310,7 +310,7 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
   win.addEventListener("beforeunload", (event) => {
     if (state?.dirty || hasOpenDraft()) {
       event.preventDefault();
-      event.returnValue = "Unsaved Redline comments will be lost.";
+      event.returnValue = "Unsaved Stet comments will be lost.";
     }
   });
 
@@ -320,7 +320,7 @@ export function createRedlineApp(options: AppOptions): RedlineApp {
 declare const window: (Window & typeof globalThis) | undefined;
 
 if (typeof window !== "undefined" && window.document?.querySelector("#app")) {
-  createRedlineApp({ window, fetch: window.fetch.bind(window) }).start().catch((error) => {
+  createStetApp({ window, fetch: window.fetch.bind(window) }).start().catch((error) => {
     const banner = window.document.querySelector<HTMLElement>("#banner");
     if (banner) {
       banner.textContent = error instanceof Error ? error.message : String(error);

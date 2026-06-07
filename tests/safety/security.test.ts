@@ -29,8 +29,8 @@ describe("session token + cookie", () => {
   });
 
   it("parses cookies", () => {
-    expect(parseCookies("redline_token=xyz; other=1")).toEqual({
-      redline_token: "xyz",
+    expect(parseCookies("stet_token=xyz; other=1")).toEqual({
+      stet_token: "xyz",
       other: "1",
     });
   });
@@ -43,7 +43,7 @@ describe("token check", () => {
   });
   it("accepts a matching cookie token", () => {
     expect(
-      checkToken({ cookieHeader: `redline_token=${expected}` }, expected),
+      checkToken({ cookieHeader: `stet_token=${expected}` }, expected),
     ).toBe(true);
   });
   it("rejects a missing token", () => {
@@ -52,7 +52,7 @@ describe("token check", () => {
   it("rejects a wrong token", () => {
     expect(checkToken({ headerToken: "nope" }, expected)).toBe(false);
     expect(
-      checkToken({ cookieHeader: "redline_token=nope" }, expected),
+      checkToken({ cookieHeader: "stet_token=nope" }, expected),
     ).toBe(false);
   });
   it("rejects when no expected token configured", () => {
@@ -107,7 +107,7 @@ describe("remote resource blocking", () => {
     const html = '<img src="https://tracker.example/pixel.png"><img src="local.png">';
     const out = blockRemoteResourcesInHtml(html);
     expect(out).not.toContain("tracker.example");
-    expect(out).toContain("about:blank#redline-blocked-remote");
+    expect(out).toContain("about:blank#stet-blocked-remote");
     expect(out).toContain('src="local.png"');
   });
 });

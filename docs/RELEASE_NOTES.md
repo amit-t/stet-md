@@ -1,16 +1,16 @@
-# Redline Release Notes
+# Stet Release Notes
 
 ## 0.1.0 MVP
 
 ### Included
 
-- `redline-md` npm package metadata.
-- `redline` binary and `rl` alias.
-- `redline FILE.md` local loopback review server.
+- `stet` npm package metadata.
+- `stet` binary and `s` alias, with `redline`/`rl` kept as legacy command aliases for migration.
+- `stet FILE.md` local loopback review server.
 - Browser UI for heading, paragraph, and document-level comments.
 - Thread reply, resolve, and reopen flows.
-- `redline list --json`, `reply`, `resolve`, `reopen`, and MVP `comment` helper.
-- Byte-splice persistence with backups under `.redline/backups/`.
+- `stet list --json`, `reply`, `resolve`, `reopen`, and MVP `comment` helper.
+- Byte-splice persistence with backups under `.stet/backups/`.
 - Loopback hardening: token cookie, Host validation, CSP, no-referrer, remote resource blocking.
 - CI scripts for typecheck, unit/server/security/browser smoke, and package smoke gates.
 

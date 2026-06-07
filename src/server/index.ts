@@ -174,7 +174,7 @@ export async function createReviewServer(options: ReviewServerOptions): Promise<
     try {
       setSecurityHeaders(response);
       if (!isAllowedHost(request.headers.host, port)) {
-        return textResponse(response, 403, "Host header rejected by Redline loopback guard.");
+        return textResponse(response, 403, "Host header rejected by Stet loopback guard.");
       }
       const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
       const pathname = url.pathname;
@@ -185,7 +185,7 @@ export async function createReviewServer(options: ReviewServerOptions): Promise<
       }
 
       if (!hasValidToken(request, token)) {
-        return textResponse(response, 401, "Missing or invalid Redline session token.");
+        return textResponse(response, 401, "Missing or invalid Stet session token.");
       }
 
       if (pathname === "/assets/style.css" && request.method === "GET") return textResponse(response, 200, styleCss, "text/css; charset=utf-8");
@@ -215,7 +215,7 @@ export async function createReviewServer(options: ReviewServerOptions): Promise<
     server.listen(options.port ?? 0, "127.0.0.1", () => resolveListen());
   });
   const address = server.address();
-  if (!address || typeof address === "string") throw new Error("Unable to determine Redline server port");
+  if (!address || typeof address === "string") throw new Error("Unable to determine Stet server port");
   port = address.port;
   const url = `http://127.0.0.1:${port}`;
   if (options.openBrowser !== false) openBrowser(url, options.app);
@@ -224,7 +224,7 @@ export async function createReviewServer(options: ReviewServerOptions): Promise<
     url,
     port,
     token,
-    authCookie: `redline_token=${token}`,
+    authCookie: `stet_token=${token}`,
     lockStatus: state.lockStatus,
     close: () => new Promise<void>((resolveClose, reject) => {
       releaseLock(state.lockStatus.lockPath);

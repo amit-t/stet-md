@@ -1,7 +1,7 @@
 {
-  "name": "redline-md",
+  "name": "stet",
   "version": "0.1.0",
-  "description": "Local Markdown review utility: threaded review comments that live inside Markdown files with byte-splice persistence, agent CLI, and browser UI.",
+  "description": "Local Markdown review utility for engineers and AI agents: threaded comments that live inside Markdown files with byte-splice persistence.",
   "keywords": [
     "markdown",
     "review",
@@ -17,9 +17,10 @@
     "node": ">=20.10"
   },
   "bin": {
+    "stet": "dist/cli/main.js",
+    "s": "dist/cli/main.js",
     "redline": "dist/cli/main.js",
-    "rl": "dist/cli/main.js",
-    "redline-md": "dist/cli/main.js"
+    "rl": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -75,11 +76,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/amittiwari/redline.git"
+    "url": "https://github.com/amit-t/stet.git"
   },
-  "homepage": "https://github.com/amittiwari/redline#readme",
+  "homepage": "https://github.com/amit-t/stet#readme",
   "bugs": {
-    "url": "https://github.com/amittiwari/redline/issues"
+    "url": "https://github.com/amit-t/stet/issues"
   },
   "packageManager": "pnpm@10.33.0"
 }

@@ -1,4 +1,4 @@
-import { RedlineError } from "../core/errors.js";
+import { StetError } from "../core/errors.js";
 
 /**
  * Minimal argv parser. Supports `--flag value`, `--flag=value`, boolean flags,
@@ -52,7 +52,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       const short = arg.slice(1);
       if (short === "h") flags["help"] = true;
       else if (short === "v") flags["version"] = true;
-      else throw new RedlineError("usage", `unknown option "-${short}"`);
+      else throw new StetError("usage", `unknown option "-${short}"`);
     } else {
       positionals.push(arg);
     }
@@ -67,7 +67,7 @@ export function requireFlag(
 ): string {
   const v = flags[name];
   if (typeof v !== "string" || v.length === 0) {
-    throw new RedlineError("usage", `missing required option --${name}`);
+    throw new StetError("usage", `missing required option --${name}`);
   }
   return v;
 }

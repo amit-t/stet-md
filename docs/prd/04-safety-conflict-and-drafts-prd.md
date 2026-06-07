@@ -1,8 +1,8 @@
-# Redline PRD 04 — Safety, Conflicts, Drafts, Locks, and Backups
+# Stet PRD 04 — Safety, Conflicts, Drafts, Locks, and Backups
 
 ## Purpose
 
-Protect user files and local machine while Redline runs a write-capable browser UI.
+Protect user files and local machine while Stet runs a write-capable browser UI.
 
 ## Local server security
 
@@ -46,14 +46,14 @@ Requirements:
 
 Requirements:
 
-- Store backups under `.redline/backups/`.
-- Auto-create `.redline/.gitignore` with `*`.
+- Store backups under `.stet/backups/`.
+- Auto-create `.stet/.gitignore` with `*`.
 - Backups include timestamp and short file hash.
 - Backups are created before atomic replacement.
 
 ## Locks
 
-MVP lock file under `.redline/locks/` contains:
+MVP lock file under `.stet/locks/` contains:
 
 - PID
 - hostname
@@ -63,7 +63,7 @@ MVP lock file under `.redline/locks/` contains:
 
 Behavior:
 
-- Second Redline instance on same file warns.
+- Second Stet instance on same file warns.
 - If PID no longer exists or lock mtime is stale, show stale-lock recovery prompt.
 - Last-write-wins without warning is forbidden.
 
@@ -75,5 +75,5 @@ Behavior:
 - Remote image in Markdown does not leak token through Referer.
 - Changed file blocks save and shows conflict UI.
 - Open composer survives refresh through localStorage.
-- `.redline/.gitignore` prevents backups/locks from entering git.
+- `.stet/.gitignore` prevents backups/locks from entering git.
 - Stale lock can be recovered; active lock warns.

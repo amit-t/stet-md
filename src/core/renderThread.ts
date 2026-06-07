@@ -22,7 +22,7 @@ export function displayTime(iso: string): string {
 
 /**
  * Neutralize HTML-comment delimiters so a message body rendered into the
- * blockquote can never collide with the `<!-- /redline:thread -->` scan that
+ * blockquote can never collide with the `<!-- /stet:thread -->` scan that
  * finds block boundaries. Display-only; the structured body stays exact.
  */
 function neutralize(text: string): string {

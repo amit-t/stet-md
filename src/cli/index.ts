@@ -9,7 +9,7 @@ import {
   type CliContext,
 } from "./commands.js";
 import { AGENT_PROTOCOL } from "./protocol.js";
-import { isRedlineError, RedlineError } from "../core/errors.js";
+import { isStetError, StetError } from "../core/errors.js";
 
 /**
  * CLI entry. `runCli` returns an exit code instead of calling process.exit so
@@ -35,22 +35,22 @@ function packageVersion(): string {
   }
 }
 
-const HELP = `redline — Markdown review comments that live inside the file
+const HELP = `stet — Markdown review comments that live inside the file
 
 Usage:
-  redline list --json FILE.md                 List threads as deterministic JSON
-  redline reply FILE.md --thread ID --author NAME --message "..."
+  stet list --json FILE.md                 List threads as deterministic JSON
+  stet reply FILE.md --thread ID --author NAME --message "..."
                                               Append a reply to a thread
-  redline resolve FILE.md --thread ID [--author NAME] [--message "..."]
+  stet resolve FILE.md --thread ID [--author NAME] [--message "..."]
                                               Mark a thread resolved
-  redline comment FILE.md --target KIND:VALUE --author NAME --message "..."
+  stet comment FILE.md --target KIND:VALUE --author NAME --message "..."
                                               Create a new thread (KIND = heading|paragraph|document)
-  redline --print-agent-protocol              Print the agent collaboration protocol
-  redline --version                           Print version
-  redline --help                              Print this help
+  stet --print-agent-protocol              Print the agent collaboration protocol
+  stet --version                           Print version
+  stet --help                              Print this help
 
 Browser review UI:
-  redline FILE.md [--author NAME] [--app APP] [--port N] [--no-open]
+  stet FILE.md [--author NAME] [--app APP] [--port N] [--no-open]
                                               Opens the local review server (provided by the
                                               server subsystem; not bundled in this core build).
 
@@ -58,7 +58,7 @@ Exit codes: 0 ok · 1 runtime error (missing file, malformed marker, unknown
 thread, changed file) · 2 usage error.
 `;
 
-function exitCodeFor(err: RedlineError): number {
+function exitCodeFor(err: StetError): number {
   switch (err.code) {
     case "usage":
     case "invalid_target":
@@ -70,13 +70,13 @@ function exitCodeFor(err: RedlineError): number {
 
 function bareFileNotice(file: string, ctx: CliContext): number {
   ctx.err(
-    `redline: the browser review server is provided by the server subsystem ` +
+    `stet: the browser review server is provided by the server subsystem ` +
       `and is not bundled in this core build.`,
   );
   ctx.err(
-    `Use the agent CLI instead, e.g.:  redline list --json ${file}`,
+    `Use the agent CLI instead, e.g.:  stet list --json ${file}`,
   );
-  ctx.err(`See 'redline --print-agent-protocol' for the agent workflow.`);
+  ctx.err(`See 'stet --print-agent-protocol' for the agent workflow.`);
   return 0;
 }
 
@@ -91,7 +91,7 @@ export async function runCli(
     out,
     err,
     now: options.now ?? (() => new Date()),
-    defaultAuthor: () => env.REDLINE_AUTHOR || env.USER || env.USERNAME || "Agent",
+    defaultAuthor: () => env.STET_AUTHOR || env.USER || env.USERNAME || "Agent",
   };
 
   let parsed: ParsedArgs;
@@ -144,8 +144,8 @@ export async function runCli(
         if (/\.(md|markdown|mdx)$/i.test(command) || parsed.positionals.length >= 1) {
           return bareFileNotice(command, ctx);
         }
-        err(`redline: unknown command "${command}"`);
-        err(`Run 'redline --help' for usage.`);
+        err(`stet: unknown command "${command}"`);
+        err(`Run 'stet --help' for usage.`);
         return 2;
       }
     }
@@ -155,11 +155,11 @@ export async function runCli(
 }
 
 function handleError(e: unknown, err: (l: string) => void): number {
-  if (isRedlineError(e)) {
+  if (isStetError(e)) {
     const where = e.line ? ` (line ${e.line})` : "";
-    err(`redline: ${e.message}${where}`);
+    err(`stet: ${e.message}${where}`);
     return exitCodeFor(e);
   }
-  err(`redline: ${(e as Error)?.message ?? String(e)}`);
+  err(`stet: ${(e as Error)?.message ?? String(e)}`);
   return 1;
 }

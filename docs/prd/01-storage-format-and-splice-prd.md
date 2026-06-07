@@ -1,15 +1,15 @@
-# Redline PRD 01 — Storage Format and Byte-Splice Persistence
+# Stet PRD 01 — Storage Format and Byte-Splice Persistence
 
 ## Purpose
 
-Define and implement Redline's core storage contract: review threads live inside the Markdown file, but saving a thread never rewrites unrelated Markdown bytes.
+Define and implement Stet's core storage contract: review threads live inside the Markdown file, but saving a thread never rewrites unrelated Markdown bytes.
 
 This subsystem is the product's foundation. Browser UI and agent CLI are only safe if this layer preserves user documents exactly.
 
 ## Core requirements
 
 1. Parse Markdown source into blocks with source byte ranges.
-2. Parse `redline:thread` blocks into structured thread objects.
+2. Parse `stet:thread` blocks into structured thread objects.
 3. Generate a visible Markdown blockquote from structured thread data.
 4. Insert new thread blocks after eligible target blocks.
 5. Replace existing thread blocks when messages or status change.
@@ -21,9 +21,9 @@ This subsystem is the product's foundation. Browser UI and agent CLI are only sa
 Thread block:
 
 ```markdown
-<!-- redline:thread
+<!-- stet:thread
 version: 1
-id: rlt_20260607_150015_7f3a9c
+id: stt_20260607_150015_7f3a9c
 status: open
 created_at: 2026-06-07T15:00:15Z
 updated_at: 2026-06-07T15:00:15Z
@@ -41,12 +41,12 @@ messages:
       This section needs a goal about agents responding inside the file.
 -->
 > [!NOTE]
-> **Review thread `rlt_20260607_150015_7f3a9c` — open**
+> **Review thread `stt_20260607_150015_7f3a9c` — open**
 >
 > **Amit** · 2026-06-07 20:30 IST
 >
 > This section needs a goal about agents responding inside the file.
-<!-- /redline:thread -->
+<!-- /stet:thread -->
 ```
 
 Structured marker is source of truth. Visible blockquote is generated view.
@@ -71,7 +71,7 @@ MVP must not insert comments inside lists or tables.
 1. Read original file as bytes.
 2. Detect BOM, line ending style, and final newline state.
 3. Parse Markdown AST with source positions.
-4. Find existing Redline thread block ranges.
+4. Find existing Stet thread block ranges.
 5. Generate replacement bytes for new/updated thread blocks using the file's existing line ending style.
 6. Sort splice operations by descending start offset.
 7. Apply splices to original bytes.

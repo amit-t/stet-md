@@ -29,14 +29,14 @@ async function run(argv: string[]): Promise<{ code: number; out: string }> {
     stdout: (l) => lines.push(l),
     stderr: () => {},
     now: NOW,
-    env: { REDLINE_AUTHOR: "Amit" },
+    env: { STET_AUTHOR: "Amit" },
   });
   return { code, out: lines.join("\n") };
 }
 
 beforeEach(() => {
   original = readFileSync(fixture, "utf8");
-  dir = mkdtempSync(join(tmpdir(), "redline-dogfood-"));
+  dir = mkdtempSync(join(tmpdir(), "stet-dogfood-"));
   file = join(dir, "prd.md");
   writeFileSync(file, original, "utf8");
 });
@@ -55,7 +55,7 @@ describe("dogfood full loop on a real fixture", () => {
       "Round-trip danger: --> and -- and C:\\path must survive.",
     ]);
     expect(create.code).toBe(0);
-    const id = create.out.match(/rlt_\w+/)![0];
+    const id = create.out.match(/stt_\w+/)![0];
 
     expect((await run(["reply", file, "--thread", id, "--author", "Claude", "--message", "Agreed."])).code).toBe(0);
     expect((await run(["resolve", file, "--thread", id, "--author", "Claude", "--message", "Done."])).code).toBe(0);
@@ -73,7 +73,7 @@ describe("dogfood full loop on a real fixture", () => {
     // and the file must be byte-identical to the original.
     const current = readFileSync(file, "utf8");
     const restored = current.replace(
-      /\n\n<!-- redline:thread[\s\S]*?<!-- \/redline:thread -->\n/,
+      /\n\n<!-- stet:thread[\s\S]*?<!-- \/stet:thread -->\n/,
       "\n",
     );
     expect(restored).toBe(original);

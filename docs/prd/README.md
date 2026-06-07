@@ -1,10 +1,10 @@
-# Redline PRD Handoff
+# Stet PRD Handoff
 
-This folder is the implementation handoff for Redline.
+This folder is the implementation handoff for Stet.
 
-## What Redline is
+## What Stet is
 
-Redline opens a Markdown file in a browser, lets a human add threaded comments to exact document blocks, saves those comments back into the same Markdown file, and lets AI agents reply through safe CLI commands or a documented fallback marker protocol.
+Stet opens a Markdown file in a browser, lets a human add threaded comments to exact document blocks, saves those comments back into the same Markdown file, and lets AI agents reply through safe CLI commands or a documented fallback marker protocol.
 
 ## Consolidated source
 
@@ -13,7 +13,7 @@ The master PRD consolidates two sources:
 1. Base Codex PRD: `~/Profiles/docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md`.
 2. kid-Claude PRD/review: Profiles commit `6c1e45e`, later merged into the canonical PRD.
 
-The consolidated decisions are in `00-redline-master-prd.md`.
+The consolidated decisions are in `00-stet-master-prd.md`.
 
 ## Why split into granular PRDs
 
@@ -42,7 +42,7 @@ Reason: persistence contract must be trusted before browser UX can safely write 
 Amit can run:
 
 ```zsh
-redline prd.md
+stet prd.md
 ```
 
 Then:
@@ -50,7 +50,7 @@ Then:
 1. Browser opens.
 2. Amit double-clicks a heading or paragraph.
 3. Amit writes a comment and saves.
-4. `prd.md` gains a structured `redline:thread` block.
-5. An agent runs `redline reply prd.md --thread <id> --author Claude --message "..."`.
-6. Reopening `redline prd.md` shows both human comment and agent reply in one thread.
+4. `prd.md` gains a structured `stet:thread` block.
+5. An agent runs `stet reply prd.md --thread <id> --author Claude --message "..."`.
+6. Reopening `stet prd.md` shows both human comment and agent reply in one thread.
 7. Untouched Markdown bytes remain identical.

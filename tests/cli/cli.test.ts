@@ -23,13 +23,13 @@ async function run(argv: string[]): Promise<RunOut> {
     stdout: (l) => outLines.push(l),
     stderr: (l) => errLines.push(l),
     now: NOW,
-    env: { REDLINE_AUTHOR: "Amit" },
+    env: { STET_AUTHOR: "Amit" },
   });
   return { code, stdout: outLines.join("\n"), stderr: errLines.join("\n") };
 }
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "redline-cli-"));
+  dir = mkdtempSync(join(tmpdir(), "stet-cli-"));
   file = join(dir, "prd.md");
   writeFileSync(
     file,
@@ -51,7 +51,7 @@ async function seedThread(): Promise<string> {
     "Needs a goal about agents replying in-file.",
   ]);
   expect(r.code).toBe(0);
-  const id = r.stdout.match(/rlt_\w+/)![0];
+  const id = r.stdout.match(/stt_\w+/)![0];
   return id;
 }
 
@@ -64,13 +64,13 @@ describe("informational commands", () => {
   it("--help prints usage", async () => {
     const r = await run(["--help"]);
     expect(r.code).toBe(0);
-    expect(r.stdout).toContain("redline list --json FILE.md");
+    expect(r.stdout).toContain("stet list --json FILE.md");
   });
   it("--print-agent-protocol prints the protocol", async () => {
     const r = await run(["--print-agent-protocol"]);
     expect(r.code).toBe(0);
-    expect(r.stdout).toContain("Redline agent protocol");
-    expect(r.stdout).toContain("redline reply FILE.md");
+    expect(r.stdout).toContain("Stet agent protocol");
+    expect(r.stdout).toContain("stet reply FILE.md");
   });
 });
 
@@ -161,7 +161,7 @@ describe("nonzero exit codes with useful errors", () => {
       "reply",
       file,
       "--thread",
-      "rlt_20990101_000000_ffffff",
+      "stt_20990101_000000_ffffff",
       "--message",
       "hi",
     ]);
@@ -172,7 +172,7 @@ describe("nonzero exit codes with useful errors", () => {
   it("malformed marker -> exit 1 with a line number", async () => {
     writeFileSync(
       file,
-      "# Doc\n\n<!-- redline:thread\n: : broken : :\n-->\n> x\n<!-- /redline:thread -->\n",
+      "# Doc\n\n<!-- stet:thread\n: : broken : :\n-->\n> x\n<!-- /stet:thread -->\n",
       "utf8",
     );
     const r = await run(["list", "--json", file]);

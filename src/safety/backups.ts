@@ -5,7 +5,7 @@ import { ensureStateDir } from "./state.js";
 
 /**
  * Write a timestamped backup of the file's current bytes into
- * `.redline/backups/` before an atomic replacement. The filename embeds a UTC
+ * `.stet/backups/` before an atomic replacement. The filename embeds a UTC
  * timestamp and a short content hash so backups are sortable and dedupable.
  */
 

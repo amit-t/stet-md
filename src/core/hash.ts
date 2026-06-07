@@ -48,5 +48,5 @@ export function shortHash(text: string): string {
 
 export function createThreadId(now = new Date()): string {
   const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z").replace("T", "_").replace(/Z$/, "");
-  return `rlt_${stamp}_${randomBytes(3).toString("hex")}`;
+  return `stt_${stamp}_${randomBytes(3).toString("hex")}`;
 }

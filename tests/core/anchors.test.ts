@@ -33,7 +33,7 @@ describe("anchor resolution", () => {
     const out = withComment(src, "heading:Product goals");
     // Move the heading away from the thread block: drop the heading where it
     // was and reintroduce identical text later in the document.
-    const blockStart = out.indexOf("<!-- redline:thread");
+    const blockStart = out.indexOf("<!-- stet:thread");
     const moved =
       out.slice(0, out.indexOf("## Product goals")) +
       out.slice(blockStart) +
@@ -46,7 +46,7 @@ describe("anchor resolution", () => {
     const out = withComment("## Product goals\n\nBody.\n", "heading:Product goals");
     // Remove the adjacent heading entirely so the thread leads the document
     // and no block anywhere carries the target's hash.
-    const blockStart = out.indexOf("<!-- redline:thread");
+    const blockStart = out.indexOf("<!-- stet:thread");
     const orphaned = out.slice(blockStart);
     const [a] = resolveAnchors(orphaned);
     expect(a!.status).toBe("orphan");

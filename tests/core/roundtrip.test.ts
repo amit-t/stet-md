@@ -10,7 +10,7 @@ import type { ReviewThread } from "../../src/core/types.js";
 function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
   return {
     version: 1,
-    id: "rlt_20260607_150015_7f3a9c",
+    id: "stt_20260607_150015_7f3a9c",
     status: "open",
     createdAt: "2026-06-07T15:00:15Z",
     updatedAt: "2026-06-07T15:00:15Z",
@@ -73,7 +73,10 @@ describe("marker serialize/parse round-trip", () => {
       ],
     });
     const block = renderThreadBlock(t);
-    // The marker body (between the opening `<!-- redline:thread` delimiter and
+    expect(block).toContain("<!-- stet:thread");
+    expect(block).toContain("<!-- /stet:thread -->");
+    expect(block).not.toContain("<!-- redline:thread");
+    // The marker body (between the opening `<!-- stet:thread` delimiter and
     // its closing `-->`) must never contain `--`, which would close the HTML
     // comment early. The `<!--` delimiter itself legitimately contains `--`.
     const innerStart = block.indexOf("\n") + 1;
@@ -112,5 +115,16 @@ describe("marker serialize/parse round-trip", () => {
       ],
     });
     expect(parseMarker(serializeMarker(t))).toEqual(t);
+  });
+
+  it("parses legacy redline:thread blocks for backward compatibility", () => {
+    const t = thread();
+    const legacy = renderThreadBlock(t)
+      .replace("<!-- stet:thread", "<!-- redline:thread")
+      .replace("<!-- /stet:thread -->", "<!-- /redline:thread -->");
+    const { blocks, errors } = scanThreadBlocks(`# Heading\n\n${legacy}\n`);
+    expect(errors).toEqual([]);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0]!.thread).toEqual(t);
   });
 });

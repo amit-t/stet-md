@@ -12,7 +12,7 @@ import {
 } from "../../src/core/index.js";
 
 function tempMarkdown(contents: string | Buffer): string {
-  const dir = mkdtempSync(join(tmpdir(), "redline-core-"));
+  const dir = mkdtempSync(join(tmpdir(), "stet-core-"));
   const file = join(dir, "fixture.md");
   writeFileSync(file, contents);
   return file;
@@ -43,14 +43,14 @@ describe("core parser and byte-splice writer", () => {
     saveReviewThreads(file, [first, second], { expectedHash: loaded.fileHash, now: new Date("2026-06-07T10:02:00Z") });
 
     const after = readFileSync(file, "utf8");
-    expect(after).toContain("redline:thread");
+    expect(after).toContain("stet:thread");
     expect(after).toContain("Heading note");
     expect(after).toContain("Paragraph note");
     expect(after).toContain("Paragraph one has trailing spaces.  \n");
     expect(after).toContain("Reference link stays [same][id].\n\n[id]: https://example.com\n");
-    expect(after.replace(/<!-- redline:thread[\s\S]*?<!-- \/redline:thread -->\n?/g, "")).toBe(before);
-    expect(readFileSync(join(dirname(file), ".redline", ".gitignore"), "utf8")).toBe("*\n");
-    expect(readdirSync(join(dirname(file), ".redline", "backups")).length).toBeGreaterThan(0);
+    expect(after.replace(/<!-- stet:thread[\s\S]*?<!-- \/stet:thread -->\n?/g, "")).toBe(before);
+    expect(readFileSync(join(dirname(file), ".stet", ".gitignore"), "utf8")).toBe("*\n");
+    expect(readdirSync(join(dirname(file), ".stet", "backups")).length).toBeGreaterThan(0);
   });
 
   test("replaces existing thread when appending reply and resolving", () => {
@@ -66,12 +66,12 @@ describe("core parser and byte-splice writer", () => {
 
     const twice = readFileSync(file, "utf8");
     expect(twice).toContain("status: resolved");
-    const marker = twice.slice(twice.indexOf("<!-- redline:thread"), twice.indexOf("-->"));
+    const marker = twice.slice(twice.indexOf("<!-- stet:thread"), twice.indexOf("-->"));
     expect(marker).not.toContain("Reply with --> marker");
     expect(twice).toContain("Reply with --&gt; marker");
     expect(twice).toContain("Resolved");
-    expect((twice.match(/<!-- redline:thread/g) ?? []).length).toBe(1);
-    expect(twice.replace(/<!-- redline:thread[\s\S]*?<!-- \/redline:thread -->\n?/g, "")).toBe(once.replace(/<!-- redline:thread[\s\S]*?<!-- \/redline:thread -->\n?/g, ""));
+    expect((twice.match(/<!-- stet:thread/g) ?? []).length).toBe(1);
+    expect(twice.replace(/<!-- stet:thread[\s\S]*?<!-- \/stet:thread -->\n?/g, "")).toBe(once.replace(/<!-- stet:thread[\s\S]*?<!-- \/stet:thread -->\n?/g, ""));
 
     const reparsed = loadReviewDocument(file);
     expect(reparsed.threads[0].messages.map((message) => message.bodyMarkdown)).toEqual(["Initial", "Reply with --> marker", "Resolved"]);
@@ -90,9 +90,9 @@ describe("core parser and byte-splice writer", () => {
     const after = readFileSync(file);
     expect(after.subarray(0, 3)).toEqual(bom);
     const text = after.toString("utf8");
-    expect(text).toContain("\r\n<!-- redline:thread\r\n");
-    expect(text.endsWith("<!-- /redline:thread -->")).toBe(true);
-    expect(text.replace(/<!-- redline:thread[\s\S]*?<!-- \/redline:thread -->/g, "")).toBe("﻿# Title\r\n\r\nParagraph without final newline\r\n");
+    expect(text).toContain("\r\n<!-- stet:thread\r\n");
+    expect(text.endsWith("<!-- /stet:thread -->")).toBe(true);
+    expect(text.replace(/<!-- stet:thread[\s\S]*?<!-- \/stet:thread -->/g, "")).toBe("﻿# Title\r\n\r\nParagraph without final newline\r\n");
   });
 
   test("flags adjacent changed target as content drifted on reopen", () => {
@@ -131,8 +131,8 @@ describe("core parser and byte-splice writer", () => {
     expect(reopened.warnings.some((warning) => warning.kind === "orphaned_thread")).toBe(true);
   });
 
-  test("ignores redline marker examples inside fenced code blocks", () => {
-    const file = tempMarkdown("# Title\n\n```markdown\n<!-- redline:thread\nversion: 1\nid: rlt_example\nstatus: open\ncreated_at: 2026-06-07T10:00:00Z\nupdated_at: 2026-06-07T10:00:00Z\ntarget:\n  kind: document\n  heading_path:\n    []\n  block_ordinal: 0\n  source_hash: sha256:example\n  quote: Document\nmessages:\n  - author: Amit\n    created_at: 2026-06-07T10:00:00Z\n    body: |-\n      Example only\n-->\n> [!NOTE]\n<!-- /redline:thread -->\n```\n\nReal paragraph.\n");
+  test("ignores stet marker examples inside fenced code blocks", () => {
+    const file = tempMarkdown("# Title\n\n```markdown\n<!-- stet:thread\nversion: 1\nid: stt_example\nstatus: open\ncreated_at: 2026-06-07T10:00:00Z\nupdated_at: 2026-06-07T10:00:00Z\ntarget:\n  kind: document\n  heading_path:\n    []\n  block_ordinal: 0\n  source_hash: sha256:example\n  quote: Document\nmessages:\n  - author: Amit\n    created_at: 2026-06-07T10:00:00Z\n    body: |-\n      Example only\n-->\n> [!NOTE]\n<!-- /stet:thread -->\n```\n\nReal paragraph.\n");
     const doc = loadReviewDocument(file);
 
     expect(doc.threads).toEqual([]);
@@ -141,7 +141,7 @@ describe("core parser and byte-splice writer", () => {
   });
 
   test("malformed marker reports line/range and leaves raw content visible to caller", () => {
-    const file = tempMarkdown("# Title\n\n<!-- redline:thread\nid: broken\nstatus: open\n-->\n> bad\n<!-- /redline:thread -->\n");
+    const file = tempMarkdown("# Title\n\n<!-- stet:thread\nid: broken\nstatus: open\n-->\n> bad\n<!-- /stet:thread -->\n");
     const doc = loadReviewDocument(file, { allowMalformed: true });
 
     expect(doc.errors).toHaveLength(1);
@@ -171,4 +171,30 @@ describe("core parser and byte-splice writer", () => {
     expect(doc.threads[0].messages[0].bodyMarkdown).toBe("Structured truth");
     expect(doc.warnings.some((warning) => warning.kind === "divergent_generated_blockquote")).toBe(true);
   });
+
+  test("loads legacy redline:thread blocks through the document parser", () => {
+    const target = {
+      id: "t1",
+      kind: "document" as const,
+      headingPath: [],
+      blockOrdinal: 0,
+      sourceHash: "sha256:doc",
+      quote: "Document",
+      byteRange: { start: 0, end: 0 },
+      lineStart: 1,
+      lineEnd: 1,
+    };
+    const thread = createThreadForTarget(target, "Amit", "Legacy", new Date("2026-06-07T10:00:00Z"));
+    const legacy = renderThreadBlock(thread, "\n")
+      .replace("<!-- stet:thread", "<!-- redline:thread")
+      .replace("<!-- /stet:thread -->", "<!-- /redline:thread -->");
+    const file = tempMarkdown(`# Title\n\n${legacy}\n`);
+
+    const doc = loadReviewDocument(file);
+
+    expect(doc.errors).toEqual([]);
+    expect(doc.threads[0].id).toBe(thread.id);
+    expect(doc.threads[0].messages[0].bodyMarkdown).toBe("Legacy");
+  });
+
 });

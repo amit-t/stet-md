@@ -19,11 +19,11 @@ A paragraph with `inline code` and a [reference link][ref], plus trailing space.
 A documentation example must be ignored by the parser:
 
 ```markdown
-<!-- redline:thread
-id: rlt_example
+<!-- stet:thread
+id: stt_example
 -->
 > example only
-<!-- /redline:thread -->
+<!-- /stet:thread -->
 ```
 
 [ref]: https://example.com/spec

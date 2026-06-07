@@ -1,4 +1,4 @@
-# Redline PRD 03 — Local Server and Browser Review UI
+# Stet PRD 03 — Local Server and Browser Review UI
 
 ## Purpose
 
@@ -7,7 +7,7 @@ Provide the human review surface: open Markdown in a browser, add comments to el
 ## Launch flow
 
 ```zsh
-redline path/to/file.md
+stet path/to/file.md
 ```
 
 1. Resolve absolute canonical file path.
@@ -30,7 +30,7 @@ MVP endpoints:
 ## UI layout
 
 1. Top bar: file name, dirty state, save button, reload button, open thread count, render/security warnings.
-2. Markdown body: GitHub-like styling, syntax highlighting, `data-redline-target` attributes.
+2. Markdown body: GitHub-like styling, syntax highlighting, `data-stet-target` attributes.
 3. Gutter/side panel: aligned thread cards, document-level card, orphan/card drift warnings.
 
 ## Comment creation
@@ -59,7 +59,7 @@ Resolved threads collapsed by default.
 
 On reopen:
 
-- Parse all `redline:thread` blocks.
+- Parse all `stet:thread` blocks.
 - Attach by MVP anchor algorithm.
 - Show `content drifted` when adjacent target hash changed.
 - Show orphaned threads in “Needs re-attach”.
@@ -67,10 +67,10 @@ On reopen:
 
 ## Acceptance criteria
 
-- Browser opens for `redline prd.md`.
+- Browser opens for `stet prd.md`.
 - Document renders headings, paragraphs, lists, blockquotes, and code blocks.
 - Double-click heading/paragraph opens composer.
-- Saving writes `redline:thread` block.
+- Saving writes `stet:thread` block.
 - Reopen restores thread beside target.
 - CLI-added reply appears after reload.
 - Resolve/reopen status survives save and reopen.

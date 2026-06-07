@@ -15,8 +15,8 @@ body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", 
 #document { min-width: 0; padding: 1rem 2rem 4rem; }
 #document h1, #document h2, #document h3 { border-bottom: 1px solid #d8dee4; padding-bottom: 0.3rem; }
 #document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6 { position: relative; }
-#document [data-redline-target] { cursor: crosshair; border-radius: 6px; }
-#document [data-redline-target]:hover, #document [data-redline-target]:focus { outline: 2px solid rgba(9,105,218,0.25); }
+#document [data-stet-target] { cursor: crosshair; border-radius: 6px; }
+#document [data-stet-target]:hover, #document [data-stet-target]:focus { outline: 2px solid rgba(9,105,218,0.25); }
 .target-plus { position: absolute; margin-left: 0.4rem; padding: 0.1rem 0.4rem; color: var(--accent); font-weight: 700; }
 pre { padding: 1rem; background: #f6f8fa; border-radius: 8px; overflow: auto; }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -42,12 +42,12 @@ export function shellHtml(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Redline</title>
+  <title>Stet</title>
   <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
   <div id="app">
-    <header id="topbar">Loading Redline…</header>
+    <header id="topbar">Loading Stet…</header>
     <div id="banner"></div>
     <div class="layout">
       <article id="document" aria-label="Markdown document"></article>
