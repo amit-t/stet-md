@@ -18,7 +18,8 @@
   },
   "bin": {
     "redline": "dist/cli/main.js",
-    "rl": "dist/cli/main.js"
+    "rl": "dist/cli/main.js",
+    "redline-md": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -53,11 +54,11 @@
     "test:cli": "vitest run tests/cli",
     "test:server": "vitest run tests/server tests/security",
     "test:browser": "vitest run tests/browser",
-    "test:packaging": "npm run build && vitest run tests/packaging",
-    "ci": "npm run typecheck && npm test && npm run test:packaging",
-    "pack:dry": "npm pack --dry-run",
-    "prepack": "npm run build",
-    "prepublishOnly": "npm run ci"
+    "test:packaging": "pnpm run build && vitest run tests/packaging",
+    "ci": "pnpm run typecheck && pnpm test && pnpm run test:packaging",
+    "pack:dry": "pnpm pack --dry-run",
+    "prepack": "pnpm run build",
+    "prepublishOnly": "pnpm run ci"
   },
   "dependencies": {
     "js-yaml": "^4.2.0",
@@ -79,5 +80,6 @@
   "homepage": "https://github.com/amittiwari/redline#readme",
   "bugs": {
     "url": "https://github.com/amittiwari/redline/issues"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

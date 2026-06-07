@@ -3,25 +3,57 @@
 Redline is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
 - npm package: `redline-md`
-- binaries: `redline`, `rl`
+- binaries: `redline`, `rl`, `redline-md` (package-name bin for `npx redline-md@latest`)
 - marker: `redline:thread`
 - thread IDs: `rlt_...`
 - transient state: `.redline/`
 
 ## Install
 
-From this repository:
+### Install from Amit's local checkout
+
+Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/redline`:
 
 ```zsh
-npm install
-npm run build
-npm link
+cd /Users/amittiwari/Projects/Tools-Utilities/redline
+pnpm install
+pnpm run build
+pnpm link --global
+rehash
+redline --version
+rl --help
 ```
 
-After publish:
+If `pnpm link --global` says the global bin directory is not configured, run `pnpm setup`, restart the shell, then repeat `pnpm link --global`.
+
+### No-clone one-shot usage after publish
+
+After `redline-md` is published to npm, anyone can run Redline without cloning this repo:
 
 ```zsh
+npx redline-md@latest README.md
+# or
+pnpm dlx redline-md README.md
+```
+
+`npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `redline-md` binary, and leaves no project dependency behind. Pass the same flags you would pass to `redline`:
+
+```zsh
+npx redline-md@latest --author "Amit" --app "Google Chrome" docs/prd/00-redline-master-prd.md
+pnpm dlx redline-md --no-open --port 43117 docs/prd/00-redline-master-prd.md
+```
+
+### Persistent install after publish
+
+For a permanent terminal command without cloning the repo:
+
+```zsh
+pnpm add --global redline-md
+# or, if you prefer npm for global tools:
 npm install -g redline-md
+
+redline --version
+redline README.md
 ```
 
 ## Quick start
@@ -108,7 +140,7 @@ messages:
 <!-- /redline:thread -->
 ```
 
-The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are stored as `body_base64:` so they cannot terminate the HTML comment early.
+The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are escaped in the structured marker so they cannot terminate the HTML comment early, then decoded losslessly when Redline parses the thread.
 
 ## Write safety and formatter caveats
 
@@ -140,13 +172,15 @@ Redline is local-only and has no telemetry.
 
 ## Development
 
+Redline uses pnpm for repository development. Keep `pnpm-lock.yaml` as the only package-manager lockfile.
+
 ```zsh
-npm install
-npm run typecheck
-npm test
-npm run test:packaging
-npm run ci
-npm pack --dry-run
+pnpm install
+pnpm run typecheck
+pnpm test
+pnpm run test:packaging
+pnpm run ci
+pnpm run pack:dry
 ```
 
 Test groups:

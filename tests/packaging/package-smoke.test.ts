@@ -11,6 +11,7 @@ describe("package metadata and CLI smoke", () => {
     expect(packageJson.name).toBe("redline-md");
     expect(packageJson.bin.redline).toBe("dist/cli/main.js");
     expect(packageJson.bin.rl).toBe("dist/cli/main.js");
+    expect(packageJson.bin["redline-md"]).toBe("dist/cli/main.js");
   });
 
   test("built CLI exposes help, version, and agent protocol", () => {
@@ -53,6 +54,25 @@ describe("package metadata and CLI smoke", () => {
     const malformed = join(dir, "malformed.md");
     writeFileSync(malformed, "# Title\n\n<!-- redline:thread\nid: broken\n-->\n<!-- /redline:thread -->\n");
     expect(() => execFileSync("node", ["dist/cli/main.js", "list", "--json", malformed], { encoding: "utf8", stdio: "pipe" })).toThrow();
+  });
+
+
+  test("repo uses pnpm as the package manager", () => {
+    expect(packageJson.packageManager).toMatch(/^pnpm@/);
+    expect(packageJson.scripts["test:packaging"]).toContain("pnpm run build");
+    expect(packageJson.scripts.ci).toContain("pnpm run typecheck");
+    expect(existsSync("pnpm-lock.yaml")).toBe(true);
+    expect(existsSync("package-lock.json")).toBe(false);
+  });
+
+  test("README documents local pnpm install plus no-clone npx and pnpm dlx usage", () => {
+    const readme = readFileSync("README.md", "utf8");
+    expect(readme).toContain("pnpm install");
+    expect(readme).toContain("pnpm run build");
+    expect(readme).toContain("pnpm link --global");
+    expect(readme).toContain("npx redline-md@latest README.md");
+    expect(readme).toContain("pnpm dlx redline-md README.md");
+    expect(readme).toContain("npm install -g redline-md");
   });
 
 });
