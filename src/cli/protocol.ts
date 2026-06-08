@@ -1,8 +1,8 @@
 /** Text for `stet --print-agent-protocol` and the docs. */
-export const AGENT_PROTOCOL = `Stet agent protocol
+export const AGENT_PROTOCOL = `Stet.md agent protocol
 ======================
 
-Stet review threads live inside the Markdown file, bracketed by
+Stet.md review threads live inside the Markdown file, bracketed by
 \`<!-- stet:thread ... -->\` markers. The structured marker is the source of
 truth; the visible blockquote beneath it is a generated view.
 

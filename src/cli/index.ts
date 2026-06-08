@@ -35,7 +35,7 @@ function packageVersion(): string {
   }
 }
 
-const HELP = `stet — Markdown review comments that live inside the file
+const HELP = `Stet.md — Markdown review comments that live inside the file
 
 Usage:
   stet list --json FILE.md                 List threads as deterministic JSON

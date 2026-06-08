@@ -8,7 +8,10 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 describe("package metadata and CLI smoke", () => {
   test("npm identity and binaries match PRD", () => {
-    expect(packageJson.name).toBe("@amit-t/stet");
+    expect(packageJson.name).toBe("@amit-t/stet.md");
+    expect(packageJson.repository.url).toBe("https://github.com/amit-t/stet.md.git");
+    expect(packageJson.homepage).toBe("https://github.com/amit-t/stet.md#readme");
+    expect(packageJson.bugs.url).toBe("https://github.com/amit-t/stet.md/issues");
     expect(packageJson.bin.stet).toBe("dist/cli/main.js");
     expect(packageJson.bin.s).toBe("dist/cli/main.js");
     expect(packageJson.bin.redline).toBe("dist/cli/main.js");
@@ -21,6 +24,7 @@ describe("package metadata and CLI smoke", () => {
     expect(version).toBe(packageJson.version);
 
     const help = execFileSync("node", ["dist/cli/main.js", "--help"], { encoding: "utf8" });
+    expect(help).toContain("Stet.md");
     expect(help).toContain("stet FILE.md");
     expect(help).toContain("stet list --json FILE.md");
 
@@ -66,14 +70,23 @@ describe("package metadata and CLI smoke", () => {
     expect(existsSync("package-lock.json")).toBe(false);
   });
 
+  test("PRDs document Stet.md repo and npm identity", () => {
+    const master = readFileSync("docs/prd/00-stet-master-prd.md", "utf8");
+    const packaging = readFileSync("docs/prd/05-packaging-testing-and-release-prd.md", "utf8");
+    expect(master).toContain("**GitHub repo:** `stet.md`");
+    expect(master).toContain("**npm package:** `@amit-t/stet.md`");
+    expect(packaging).toContain("- Repo: `stet.md`");
+    expect(packaging).toContain("- npm package: `@amit-t/stet.md`");
+  });
+
   test("README documents local pnpm install plus no-clone npx and pnpm dlx usage", () => {
     const readme = readFileSync("README.md", "utf8");
     expect(readme).toContain("pnpm install");
     expect(readme).toContain("pnpm run build");
     expect(readme).toContain("pnpm link --global");
-    expect(readme).toContain("npx @amit-t/stet@latest README.md");
-    expect(readme).toContain("pnpm dlx @amit-t/stet README.md");
-    expect(readme).toContain("npm install -g @amit-t/stet");
+    expect(readme).toContain("npx @amit-t/stet.md@latest README.md");
+    expect(readme).toContain("pnpm dlx @amit-t/stet.md README.md");
+    expect(readme).toContain("npm install -g @amit-t/stet.md");
   });
 
 });

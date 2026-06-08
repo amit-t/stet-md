@@ -1,10 +1,10 @@
-# Stet Release Notes
+# Stet.md Release Notes
 
 ## 0.1.0 MVP
 
 ### Included
 
-- `@amit-t/stet` npm package metadata with `stet` and `s` binaries.
+- `@amit-t/stet.md` npm package metadata with `stet` and `s` binaries.
 - `stet` binary and `s` alias, with `redline`/`rl` kept as legacy command aliases for migration.
 - `stet FILE.md` local loopback review server.
 - Browser UI for heading, paragraph, and document-level comments.

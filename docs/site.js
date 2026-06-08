@@ -1,4 +1,4 @@
-const repoUrl = "https://github.com/amit-t/stet";
+const repoUrl = "https://github.com/amit-t/stet.md";
 
 /* ===== CONTENT ===== */
 const features = [
@@ -71,10 +71,10 @@ const features = [
     usage: "byte splices only",
     tagline: "Saves by byte splices only — never full-stringifies your Markdown.",
     detail:
-      "Stet never re-serializes the whole document to save a comment; it edits exact byte ranges. Tests cover " +
+      "Stet.md never re-serializes the whole document to save a comment; it edits exact byte ranges. Tests cover " +
       "preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and " +
-      "paragraph wrapping outside the splice ranges. If an external formatter rewrites the file while Stet is " +
-      "open, Stet detects the file-hash change and blocks the save; reload before saving staged comments. " +
+      "paragraph wrapping outside the splice ranges. If an external formatter rewrites the file while Stet.md is " +
+      "open, Stet.md detects the file-hash change and blocks the save; reload before saving staged comments. " +
       "Backups are written before replacement under .stet/backups/. MVP has no force-save by design.",
     commands: [
       { label: "Transient state layout", code: ".stet/\n  .gitignore   # contains *\n  backups/\n  locks/" },
@@ -108,7 +108,7 @@ const changes = [
   {
     date: "2026-06-07",
     items: [
-      "Renamed the project to Stet; published under the @amit-t npm scope.",
+      "Renamed the project to Stet.md; published under the @amit-t npm scope.",
       "Binaries stet and s, with legacy redline / rl aliases.",
       "Switched repository tooling to pnpm; pnpm-lock.yaml is the only lockfile.",
       "Scaffolded this GitHub Pages docs site with the gh-repo-mirror design system.",

@@ -42,12 +42,12 @@ export function shellHtml(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stet</title>
+  <title>Stet.md</title>
   <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
   <div id="app">
-    <header id="topbar">Loading Stet…</header>
+    <header id="topbar">Loading Stet.md…</header>
     <div id="banner"></div>
     <div class="layout">
       <article id="document" aria-label="Markdown document"></article>

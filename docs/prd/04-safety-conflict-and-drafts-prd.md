@@ -1,8 +1,8 @@
-# Stet PRD 04 — Safety, Conflicts, Drafts, Locks, and Backups
+# Stet.md PRD 04 — Safety, Conflicts, Drafts, Locks, and Backups
 
 ## Purpose
 
-Protect user files and local machine while Stet runs a write-capable browser UI.
+Protect user files and local machine while Stet.md runs a write-capable browser UI.
 
 ## Local server security
 
@@ -63,7 +63,7 @@ MVP lock file under `.stet/locks/` contains:
 
 Behavior:
 
-- Second Stet instance on same file warns.
+- Second Stet.md instance on same file warns.
 - If PID no longer exists or lock mtime is stale, show stale-lock recovery prompt.
 - Last-write-wins without warning is forbidden.
 

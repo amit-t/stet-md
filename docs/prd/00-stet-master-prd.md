@@ -1,11 +1,11 @@
-# Stet — Markdown Review Comments Utility — Thesis and PRD
+# Stet.md — Markdown Review Comments Utility — Thesis and PRD
 
 - **Date:** 2026-06-07
 - **Revision:** v2, with kid-Claude architecture review incorporated
 - **Status:** Draft thesis / product requirements document
-- **Name:** **Stet** — threaded review comments that live inside the Markdown
-- **GitHub repo:** `stet` (standalone; not part of this `Profiles` dotfiles repo)
-- **npm package:** `@amit-t/stet`
+- **Name:** **Stet.md** — threaded review comments that live inside the Markdown
+- **GitHub repo:** `stet.md` (standalone; not part of this `Profiles` dotfiles repo)
+- **npm package:** `@amit-t/stet.md`
 - **Binary:** `stet` (alias `rl`) — e.g. `stet prd.md`
 - **On-disk marker token:** `stet:thread` · thread-ID prefix `stt_` · state dir `.stet/`
 - **Audience:** Amit, Codex/Claude/Devin agents, future implementer
@@ -95,7 +95,7 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 
 ## 6. Recommended product shape
 
-Build this as a new standalone utility first: **`stet`** with alias **`rl`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
+Build this as a new standalone utility first: **Stet.md**, installed with primary binary **`stet`** and alias **`rl`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
 
 Do not force it into the existing single-file `mdview` script immediately. `mdview` is a lightweight preview tool. Review comments require a local server, write endpoints, AST positions, byte-splice persistence, save conflict handling, UI state, and tests across file mutation. That is a different complexity class.
 
@@ -788,7 +788,7 @@ The first successful release is done when all of these are true:
 
 ## 22. Recommendation
 
-Build `stet` as a separate TypeScript local-server utility with Markdown-embedded structured thread blocks and byte-splice persistence.
+Build Stet.md as a separate TypeScript local-server utility with Markdown-embedded structured thread blocks and byte-splice persistence.
 
 The critical product decision is not the renderer; it is the storage contract. Once comments live in the Markdown in a predictable, agent-friendly thread format, every other surface can be swapped later: browser UI, cMUX panel, CLI summary, GitHub export, or agent-specific workflows.
 

@@ -1,4 +1,4 @@
-/** Stet core: parse, serialize, anchor, byte-splice, document, and CLI/server adapters. */
+/** Stet.md core: parse, serialize, anchor, byte-splice, document, and CLI/server adapters. */
 export * from "./types.js";
 export * from "./errors.js";
 export * from "./encode.js";

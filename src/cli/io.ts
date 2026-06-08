@@ -76,11 +76,11 @@ export function saveDoc(
     );
   }
 
-  // Warn (do not block) if another Stet instance holds an active lock.
+  // Warn (do not block) if another Stet.md instance holds an active lock.
   let lockWarning: string | undefined;
   const lock = inspectLock(doc.absPath);
   if (lock && lock.pid !== process.pid) {
-    lockWarning = `another Stet instance (pid ${lock.pid} on ${lock.hostname}) holds a lock on this file`;
+    lockWarning = `another Stet.md instance (pid ${lock.pid} on ${lock.hostname}) holds a lock on this file`;
   }
 
   const backupPath = createBackup(doc.absPath, current, now);

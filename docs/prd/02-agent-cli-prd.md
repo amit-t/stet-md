@@ -1,4 +1,4 @@
-# Stet PRD 02 — Agent-Safe CLI
+# Stet.md PRD 02 — Agent-Safe CLI
 
 ## Purpose
 

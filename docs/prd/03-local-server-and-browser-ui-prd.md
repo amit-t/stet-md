@@ -1,4 +1,4 @@
-# Stet PRD 03 — Local Server and Browser Review UI
+# Stet.md PRD 03 — Local Server and Browser Review UI
 
 ## Purpose
 

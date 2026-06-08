@@ -1,13 +1,13 @@
-# Stet PRD 05 — Packaging, Testing, and Release Gates
+# Stet.md PRD 05 — Packaging, Testing, and Release Gates
 
 ## Purpose
 
-Ship Stet as a standalone utility that an implementation agent can build, test, and release safely.
+Ship Stet.md as a standalone utility that an implementation agent can build, test, and release safely.
 
 ## Package identity
 
-- Repo: `stet`
-- npm package: `@amit-t/stet`
+- Repo: `stet.md`
+- npm package: `@amit-t/stet.md`
 - Binary: `stet`
 - Alias: `rl`
 - Marker: `stet:thread`
@@ -113,7 +113,7 @@ MVP release cannot ship unless:
 
 ## Acceptance criteria
 
-- `npm package` metadata uses `@amit-t/stet`, with `stet` as the primary CLI binary.
+- `npm package` metadata uses `@amit-t/stet.md`, with `stet` as the primary CLI binary.
 - Installed binary is `stet`; alias `rl` works if shipped.
 - `stet --version` and `stet --help` work.
 - CI runs unit, CLI, and browser smoke tests.

@@ -1,5 +1,5 @@
 {
-  "name": "@amit-t/stet",
+  "name": "@amit-t/stet.md",
   "version": "0.1.0",
   "description": "Local Markdown review utility for engineers and AI agents: threaded comments that live inside Markdown files with byte-splice persistence.",
   "keywords": [
@@ -78,11 +78,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/amit-t/stet.git"
+    "url": "https://github.com/amit-t/stet.md.git"
   },
-  "homepage": "https://github.com/amit-t/stet#readme",
+  "homepage": "https://github.com/amit-t/stet.md#readme",
   "bugs": {
-    "url": "https://github.com/amit-t/stet/issues"
+    "url": "https://github.com/amit-t/stet.md/issues"
   },
   "packageManager": "pnpm@10.33.0",
   "publishConfig": {

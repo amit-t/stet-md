@@ -1,4 +1,4 @@
-/** Stable Stet error hierarchy used by core, CLI, and server. */
+/** Stable Stet.md error hierarchy used by core, CLI, and server. */
 
 export type StetErrorCode =
   | "malformed_marker"

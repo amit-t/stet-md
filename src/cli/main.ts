@@ -20,7 +20,7 @@ function packageVersion(): string {
 }
 
 function help(): string {
-  return `Stet — local Markdown review comments
+  return `Stet.md — local Markdown review comments
 
 Usage:
   stet FILE.md [--author NAME] [--app APP] [--port PORT] [--no-open]
@@ -112,7 +112,7 @@ async function launch(filePath: string, args: ParsedArgs): Promise<void> {
     port: portFlag ? Number.parseInt(portFlag, 10) : undefined,
     openBrowser: !args.flags.has("no-open"),
   });
-  console.log(`Stet server: ${server.url}`);
+  console.log(`Stet.md server: ${server.url}`);
   if (server.lockStatus.message) console.warn(server.lockStatus.message);
   await new Promise<void>((resolveStop) => {
     const stop = async () => {

@@ -1,6 +1,6 @@
-# Stet Agent Protocol
+# Stet.md Agent Protocol
 
-Stet stores review threads inside Markdown files. The Markdown file is the source of truth.
+Stet.md stores review threads inside Markdown files. The Markdown file is the source of truth.
 
 ## Preferred path
 

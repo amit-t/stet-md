@@ -1,8 +1,8 @@
-# Stet
+# Stet.md
 
-Stet is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
+Stet.md is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
-- npm package: `@amit-t/stet`
+- npm package: `@amit-t/stet.md`
 - binaries: `stet`, `s`; legacy aliases: `redline`, `rl`
 - marker: `stet:thread`
 - thread IDs: `stt_...`
@@ -10,7 +10,7 @@ Stet is a local-first Markdown review utility. It opens one Markdown file in a l
 
 ## Documentation
 
-Browsable docs site (GitHub Pages): **https://amit-t.github.io/stet/**
+Browsable docs site (GitHub Pages): **https://amit-t.github.io/stet.md/**
 
 The site is a static neo-brutalist index served from [`docs/`](docs/): a capability explorer (Browser UI, Agent CLI, Storage, Safety, Security) with per-capability commands, a changelog, search/filter, dark mode, and copy-to-clipboard. It was scaffolded with the `gh-repo-mirror` skill design system; source lives in [`docs/index.html`](docs/index.html), [`docs/site.css`](docs/site.css), and [`docs/site.js`](docs/site.js).
 
@@ -26,10 +26,10 @@ Enable Pages once: repo **Settings → Pages → Source: Deploy from a branch �
 
 ### Install from Amit's local checkout
 
-Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/stet`:
+Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/stet.md`:
 
 ```zsh
-cd /Users/amittiwari/Projects/Tools-Utilities/stet
+cd /Users/amittiwari/Projects/Tools-Utilities/stet.md
 pnpm install
 pnpm run build
 pnpm link --global
@@ -42,19 +42,19 @@ If `pnpm link --global` says the global bin directory is not configured, run `pn
 
 ### No-clone one-shot usage after publish
 
-After `stet` is published to npm, anyone can run Stet without cloning this repo:
+After Stet.md is published to npm, anyone can run it without cloning this repo:
 
 ```zsh
-npx @amit-t/stet@latest README.md
+npx @amit-t/stet.md@latest README.md
 # or
-pnpm dlx @amit-t/stet README.md
+pnpm dlx @amit-t/stet.md README.md
 ```
 
 `npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `stet` binary, and leaves no project dependency behind. Pass the same flags you would pass to `stet`:
 
 ```zsh
-npx @amit-t/stet@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
-pnpm dlx @amit-t/stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
+npx @amit-t/stet.md@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
+pnpm dlx @amit-t/stet.md --no-open --port 43117 docs/prd/00-stet-master-prd.md
 ```
 
 ### Persistent install after publish
@@ -62,9 +62,9 @@ pnpm dlx @amit-t/stet --no-open --port 43117 docs/prd/00-stet-master-prd.md
 For a permanent terminal command without cloning the repo:
 
 ```zsh
-pnpm add --global @amit-t/stet
+pnpm add --global @amit-t/stet.md
 # or, if you prefer npm for global tools:
-npm install -g @amit-t/stet
+npm install -g @amit-t/stet.md
 
 stet --version
 stet README.md
@@ -154,13 +154,13 @@ messages:
 <!-- /stet:thread -->
 ```
 
-The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are escaped in the structured marker so they cannot terminate the HTML comment early, then decoded losslessly when Stet parses the thread.
+The structured marker is the source of truth. The blockquote is regenerated from marker data on save. Message bodies containing unsafe `--` sequences are escaped in the structured marker so they cannot terminate the HTML comment early, then decoded losslessly when Stet.md parses the thread.
 
 ## Write safety and formatter caveats
 
-Stet saves by byte splices only. It does not stringify or reformat the whole Markdown document. Tests cover preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and paragraph wrapping outside expected splice ranges.
+Stet.md saves by byte splices only. It does not stringify or reformat the whole Markdown document. Tests cover preservation of LF, CRLF, BOM, final-newline state, trailing spaces, list markers, reference links, and paragraph wrapping outside expected splice ranges.
 
-Formatter caveat: if an external formatter rewrites the file while Stet is open, Stet detects the file hash change and blocks save. Reload before saving staged comments. MVP intentionally has no force-save.
+Formatter caveat: if an external formatter rewrites the file while Stet.md is open, Stet.md detects the file hash change and blocks save. Reload before saving staged comments. MVP intentionally has no force-save.
 
 Backups are written before replacement:
 
@@ -173,7 +173,7 @@ Backups are written before replacement:
 
 ## Security model
 
-Stet is local-only and has no telemetry.
+Stet.md is local-only and has no telemetry.
 
 - Binds to `127.0.0.1` by default.
 - Serves only the selected Markdown file and bundled UI assets.
@@ -186,7 +186,7 @@ Stet is local-only and has no telemetry.
 
 ## Development
 
-Stet uses pnpm for repository development. Keep `pnpm-lock.yaml` as the only package-manager lockfile.
+Stet.md uses pnpm for repository development. Keep `pnpm-lock.yaml` as the only package-manager lockfile.
 
 ```zsh
 pnpm install

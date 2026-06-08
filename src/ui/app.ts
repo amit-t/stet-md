@@ -107,7 +107,7 @@ export function createStetApp(options: AppOptions): StetApp {
     if (!state) return;
     const messages: string[] = [];
     if (state.conflict.changedOnDisk) messages.push(state.conflict.message || "File changed on disk.");
-    if (state.errors.length > 0) messages.push(`Malformed Stet marker: ${state.errors.map((error) => error.message).join("; ")}`);
+    if (state.errors.length > 0) messages.push(`Malformed Stet.md marker: ${state.errors.map((error) => error.message).join("; ")}`);
     const warningText = state.warnings.map((warning) => warning.message).join(" ");
     if (warningText) messages.push(warningText);
     banner.textContent = messages.join(" ");
@@ -123,7 +123,7 @@ export function createStetApp(options: AppOptions): StetApp {
       button.className = "target-plus";
       button.dataset.action = "quick-comment";
       button.dataset.targetId = targetId;
-      button.title = "Add Stet comment";
+      button.title = "Add Stet.md comment";
       button.textContent = "+";
       element.appendChild(button);
     }
@@ -310,7 +310,7 @@ export function createStetApp(options: AppOptions): StetApp {
   win.addEventListener("beforeunload", (event) => {
     if (state?.dirty || hasOpenDraft()) {
       event.preventDefault();
-      event.returnValue = "Unsaved Stet comments will be lost.";
+      event.returnValue = "Unsaved Stet.md comments will be lost.";
     }
   });
 

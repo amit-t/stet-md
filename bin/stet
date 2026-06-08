@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Stet CLI entry point. Thin shim: delegate to the compiled CLI runner.
+// Stet.md CLI entry point. Thin shim: delegate to the compiled CLI runner.
 import { runCli } from "../dist/cli/index.js";
 
 runCli(process.argv.slice(2))

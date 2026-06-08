@@ -1,8 +1,8 @@
-# Stet PRD 01 — Storage Format and Byte-Splice Persistence
+# Stet.md PRD 01 — Storage Format and Byte-Splice Persistence
 
 ## Purpose
 
-Define and implement Stet's core storage contract: review threads live inside the Markdown file, but saving a thread never rewrites unrelated Markdown bytes.
+Define and implement Stet.md's core storage contract: review threads live inside the Markdown file, but saving a thread never rewrites unrelated Markdown bytes.
 
 This subsystem is the product's foundation. Browser UI and agent CLI are only safe if this layer preserves user documents exactly.
 
@@ -71,7 +71,7 @@ MVP must not insert comments inside lists or tables.
 1. Read original file as bytes.
 2. Detect BOM, line ending style, and final newline state.
 3. Parse Markdown AST with source positions.
-4. Find existing Stet thread block ranges.
+4. Find existing Stet.md thread block ranges.
 5. Generate replacement bytes for new/updated thread blocks using the file's existing line ending style.
 6. Sort splice operations by descending start offset.
 7. Apply splices to original bytes.

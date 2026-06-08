@@ -1,10 +1,10 @@
-# Stet PRD Handoff
+# Stet.md PRD Handoff
 
-This folder is the implementation handoff for Stet.
+This folder is the implementation handoff for Stet.md.
 
-## What Stet is
+## What Stet.md is
 
-Stet opens a Markdown file in a browser, lets a human add threaded comments to exact document blocks, saves those comments back into the same Markdown file, and lets AI agents reply through safe CLI commands or a documented fallback marker protocol.
+Stet.md opens a Markdown file in a browser, lets a human add threaded comments to exact document blocks, saves those comments back into the same Markdown file, and lets AI agents reply through safe CLI commands or a documented fallback marker protocol.
 
 ## Consolidated source
 

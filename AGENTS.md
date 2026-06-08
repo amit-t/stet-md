@@ -1,4 +1,4 @@
-# Agent Instructions — Stet
+# Agent Instructions — Stet.md
 
 Read these before implementation:
 
