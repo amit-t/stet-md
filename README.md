@@ -8,6 +8,20 @@ Stet is a local-first Markdown review utility. It opens one Markdown file in a l
 - thread IDs: `stt_...`
 - transient state: `.stet/`
 
+## Documentation
+
+Browsable docs site (GitHub Pages): **https://amit-t.github.io/stet/**
+
+The site is a static neo-brutalist index served from [`docs/`](docs/): a capability explorer (Browser UI, Agent CLI, Storage, Safety, Security) with per-capability commands, a changelog, search/filter, dark mode, and copy-to-clipboard. It was scaffolded with the `gh-repo-mirror` skill design system; source lives in [`docs/index.html`](docs/index.html), [`docs/site.css`](docs/site.css), and [`docs/site.js`](docs/site.js).
+
+Deeper references:
+
+- [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md) — full agent CLI protocol.
+- [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) — MVP limitations and release notes.
+- [`docs/prd/`](docs/prd/) — product requirement docs per subsystem.
+
+Enable Pages once: repo **Settings → Pages → Source: Deploy from a branch → `main` / `/docs`**. `docs/.nojekyll` is present so asset paths are served verbatim.
+
 ## Install
 
 ### Install from Amit's local checkout

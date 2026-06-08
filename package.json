@@ -44,7 +44,9 @@
   },
   "files": [
     "dist/",
-    "docs/",
+    "docs/AGENT_PROTOCOL.md",
+    "docs/RELEASE_NOTES.md",
+    "docs/prd/",
     "README.md"
   ],
   "scripts": {

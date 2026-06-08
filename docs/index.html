@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stet — local-first Markdown review</title>
+  <meta name="description"
+    content="Stet is a local-first Markdown review utility. Threaded review comments that live inside the Markdown file, a hardened loopback browser UI, and a safe agent CLI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./site.css">
+</head>
+
+<body>
+
+  <!-- Theme toggle -->
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+
+  <!-- ===== HERO ===== -->
+  <header class="container hero">
+    <div>
+      <span class="hero-eyebrow">STET · @amit-t/stet</span>
+      <h1>Markdown review that stays in the file.</h1>
+      <p class="hero-desc">
+        <code>stet</code> opens one Markdown file in a loopback browser UI, lets humans add threaded
+        review comments, saves those threads back into the same Markdown file by byte splices, and lets
+        AI agents reply through a safe CLI. Local-only. No telemetry. No server in the cloud.
+      </p>
+      <div class="hero-actions">
+        <a class="neo-btn neo-btn-primary" href="https://github.com/amit-t/stet" target="_blank"
+          rel="noreferrer">Open Repo</a>
+        <a class="neo-btn" href="#install-section">Install</a>
+        <a class="neo-btn" href="#features-section">Capabilities</a>
+        <a class="neo-btn" href="#changelog-section">Changelog</a>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card">
+        <span class="stat-value" id="feature-count">0</span>
+        <span class="stat-label">Capabilities</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">127.0.0.1</span>
+        <span class="stat-label">Loopback only</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">0</span>
+        <span class="stat-label">Telemetry calls</span>
+      </div>
+    </div>
+  </header>
+
+  <hr class="divider container">
+
+  <main>
+
+    <!-- ===== INSTALL / OVERVIEW ===== -->
+    <section class="container section" id="install-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow eyebrow-readme">Install</span>
+          <h2>One command, one file, threaded review</h2>
+        </div>
+        <a class="section-link" href="https://github.com/amit-t/stet/blob/main/README.md" target="_blank"
+          rel="noreferrer">Open full README</a>
+      </div>
+
+      <div class="readme-card">
+        <div class="readme-grid">
+          <div class="readme-text">
+            <p>
+              Stet is a single-file Markdown reviewer. Point it at a <code>.md</code> file and it serves a
+              hardened review UI on <code>127.0.0.1</code>. Comments are stored inline as structured
+              <code>stet:thread</code> HTML-comment markers plus a generated visible blockquote &mdash; the
+              Markdown file remains the source of truth.
+            </p>
+            <p>Binaries: <code>stet</code>, <code>s</code> (legacy aliases <code>redline</code>,
+              <code>rl</code>). Requires Node <code>&ge;20.10</code>.</p>
+            <div class="chip-row">
+              <span class="chip">Local-first</span>
+              <span class="chip">Byte-splice writes</span>
+              <span class="chip">Loopback UI</span>
+              <span class="chip">Agent CLI</span>
+              <span class="chip">No telemetry</span>
+              <span class="chip">MIT</span>
+            </div>
+          </div>
+
+          <div class="install-commands">
+            <h3>Run without cloning</h3>
+            <pre><code>npx @amit-t/stet@latest README.md</code></pre>
+            <pre><code>pnpm dlx @amit-t/stet README.md</code></pre>
+            <h3 style="margin-top:1rem">Install persistently</h3>
+            <pre><code>pnpm add --global @amit-t/stet</code></pre>
+            <pre><code>npm install -g @amit-t/stet</code></pre>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto">
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th>Launch flag</th>
+                <th>Effect</th>
+                <th>Default</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--author "Amit"</code></td>
+                <td>Sets the comment author name</td>
+                <td>OS user</td>
+              </tr>
+              <tr>
+                <td><code>--app "Google Chrome"</code></td>
+                <td>Opens the UI in a specific browser</td>
+                <td>system default</td>
+              </tr>
+              <tr>
+                <td><code>--port 43117</code></td>
+                <td>Binds the loopback server to a fixed port</td>
+                <td>ephemeral</td>
+              </tr>
+              <tr>
+                <td><code>--no-open</code></td>
+                <td>Starts the server without launching a browser</td>
+                <td>opens</td>
+              </tr>
+              <tr>
+                <td><code>--print-agent-protocol</code></td>
+                <td>Prints the full agent CLI protocol and exits</td>
+                <td>&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider container">
+
+    <!-- ===== CAPABILITY EXPLORER ===== -->
+    <section class="container section" id="features-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow eyebrow-eng">Capabilities</span>
+          <h2>Click any capability for commands and details</h2>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--muted-light)">Filter by area or search by name.</p>
+      </div>
+
+      <div class="controls">
+        <label>
+          <span class="sr-only">Search capabilities</span>
+          <input class="search-input" id="search-input" type="search" placeholder="Search capabilities...">
+        </label>
+        <div class="filters" id="category-filters"></div>
+      </div>
+
+      <div class="skill-grid" id="features-grid"></div>
+    </section>
+
+    <hr class="divider container">
+
+    <!-- ===== CHANGELOG ===== -->
+    <section class="container section" id="changelog-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow eyebrow-changelog">Changelog</span>
+          <h2>Recent changes</h2>
+        </div>
+        <a class="section-link" href="https://github.com/amit-t/stet/blob/main/docs/RELEASE_NOTES.md"
+          target="_blank" rel="noreferrer">Open release notes</a>
+      </div>
+
+      <div class="change-grid" id="change-list"></div>
+    </section>
+
+  </main>
+
+  <!-- ===== DRAWER ===== -->
+  <aside class="drawer" id="feature-drawer">
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <div class="drawer-panel">
+      <button class="drawer-close" id="drawer-close" type="button" aria-label="Close">&times;</button>
+      <div class="drawer-content" id="drawer-content"></div>
+    </div>
+  </aside>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="container footer">
+    <p>Source of truth: the repo <code>README.md</code>, <code>docs/AGENT_PROTOCOL.md</code>, and each
+      Markdown file's own <code>stet:thread</code> markers. Site scaffolded with the
+      <code>gh-repo-mirror</code> design system.</p>
+  </footer>
+
+  <script src="./site.js"></script>
+</body>
+
+</html>
