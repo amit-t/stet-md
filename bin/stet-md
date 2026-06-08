@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Stet.md CLI entry point. Thin shim: delegate to the compiled CLI runner.
+// Stet.md CLI entry point for the stet-md command. Thin shim: delegate to the compiled CLI runner.
 import { runCli } from "../dist/cli/index.js";
 
 runCli(process.argv.slice(2))
@@ -9,6 +9,6 @@ runCli(process.argv.slice(2))
   .catch((err) => {
     // Last-resort guard: runCli is expected to handle its own errors and
     // return a numeric exit code. Anything reaching here is a bug.
-    process.stderr.write(`stet: internal error: ${err?.stack ?? err}\n`);
+    process.stderr.write(`stet-md: internal error: ${err?.stack ?? err}\n`);
     process.exitCode = 70; // EX_SOFTWARE
   });

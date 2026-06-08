@@ -6,10 +6,10 @@ Ship Stet.md as a standalone utility that an implementation agent can build, tes
 
 ## Package identity
 
-- Repo: `stet.md`
-- npm package: `@amit-t/stet.md`
-- Binary: `stet`
-- Alias: `rl`
+- Repo: `stet-md`
+- npm package: `@amit-t/stet-md`
+- Binary: `stet-md`
+- Alias: `stmd`
 - Marker: `stet:thread`
 - ID prefix: `stt_`
 - State dir: `.stet/`
@@ -30,7 +30,7 @@ Suggested future structure:
 
 ```text
 bin/
-  stet
+  stet-md
 src/
   cli/
   core/
@@ -113,8 +113,8 @@ MVP release cannot ship unless:
 
 ## Acceptance criteria
 
-- `npm package` metadata uses `@amit-t/stet.md`, with `stet` as the primary CLI binary.
-- Installed binary is `stet`; alias `rl` works if shipped.
-- `stet --version` and `stet --help` work.
+- `npm package` metadata uses `@amit-t/stet-md`, with `stet-md` as the primary CLI binary.
+- Installed binary is `stet-md`; alias `stmd` works.
+- `stet-md --version` and `stet-md --help` work.
 - CI runs unit, CLI, and browser smoke tests.
 - Release notes state MVP limitations: no list-item/table-row/text-range comments yet.

@@ -9,20 +9,20 @@ The CLI is not a convenience layer. It is the primary agent protocol and future 
 ## MVP commands
 
 ```zsh
-stet list --json FILE.md
-stet reply FILE.md --thread THREAD_ID --author Claude --message "..."
-stet resolve FILE.md --thread THREAD_ID --author Claude --message "..."
-stet --print-agent-protocol
+stet-md list --json FILE.md
+stet-md reply FILE.md --thread THREAD_ID --author Claude --message "..."
+stet-md resolve FILE.md --thread THREAD_ID --author Claude --message "..."
+stet-md --print-agent-protocol
 ```
 
 Also supported by the browser-launch command:
 
 ```zsh
-stet FILE.md
-stet --author "Amit" FILE.md
-stet --app "Google Chrome" FILE.md
-stet --port 43117 FILE.md
-stet --no-open FILE.md
+stet-md FILE.md
+stet-md --author "Amit" FILE.md
+stet-md --app "Google Chrome" FILE.md
+stet-md --port 43117 FILE.md
+stet-md --no-open FILE.md
 ```
 
 ## `list --json`
@@ -79,10 +79,10 @@ Requirements:
 
 ## Agent protocol output
 
-`stet --print-agent-protocol` prints fallback manual-edit instructions:
+`stet-md --print-agent-protocol` prints fallback manual-edit instructions:
 
 1. Do not delete `stet:thread` blocks.
-2. Prefer `stet reply` and `stet resolve`.
+2. Prefer `stet-md reply` and `stet-md resolve`.
 3. If editing manually, add messages inside structured marker only.
 4. Use UTC timestamps.
 5. Do not hand-edit generated blockquote as source of truth.
@@ -90,11 +90,11 @@ Requirements:
 ## Post-MVP commands
 
 ```zsh
-stet comment FILE.md --target heading:"Product goals" --author Amit --message "..."
-stet strip-comments FILE.md --output clean.md
-stet export-comments FILE.md --format json
-stet doctor FILE.md
-stet repair FILE.md
+stet-md comment FILE.md --target heading:"Product goals" --author Amit --message "..."
+stet-md strip-comments FILE.md --output clean.md
+stet-md export-comments FILE.md --format json
+stet-md doctor FILE.md
+stet-md repair FILE.md
 ```
 
 ## Acceptance criteria

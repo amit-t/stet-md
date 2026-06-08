@@ -23,15 +23,17 @@ function help(): string {
   return `Stet.md — local Markdown review comments
 
 Usage:
-  stet FILE.md [--author NAME] [--app APP] [--port PORT] [--no-open]
-  stet list --json FILE.md
-  stet reply FILE.md --thread THREAD_ID --author NAME --message MESSAGE
-  stet resolve FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
-  stet reopen FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
-  stet comment FILE.md --target paragraph:0 --author NAME --message MESSAGE
-  stet --print-agent-protocol
-  stet --version
-  stet --help
+  Alias: stmd
+
+  stet-md FILE.md [--author NAME] [--app APP] [--port PORT] [--no-open]
+  stet-md list --json FILE.md
+  stet-md reply FILE.md --thread THREAD_ID --author NAME --message MESSAGE
+  stet-md resolve FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
+  stet-md reopen FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
+  stet-md comment FILE.md --target paragraph:0 --author NAME --message MESSAGE
+  stet-md --print-agent-protocol
+  stet-md --version
+  stet-md --help
 
 Storage:
   Threads are stored inside the Markdown file as stet:thread blocks.

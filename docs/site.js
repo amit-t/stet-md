@@ -1,4 +1,4 @@
-const repoUrl = "https://github.com/amit-t/stet.md";
+const repoUrl = "https://github.com/amit-t/stet-md";
 
 /* ===== CONTENT ===== */
 const features = [
@@ -6,7 +6,7 @@ const features = [
     slug: "browser-review-ui",
     name: "Browser review UI",
     category: "Review UI",
-    usage: "stet FILE.md",
+    usage: "stet-md FILE.md",
     tagline: "Threaded review comments in a hardened loopback browser UI.",
     detail:
       "Top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview. " +
@@ -15,9 +15,9 @@ const features = [
       "replies, resolve/reopen controls, orphan and content-drift warnings. localStorage draft recovery " +
       "keyed by file path and loaded file hash. Conflict banner when the file changes on disk before save.",
     commands: [
-      { label: "Open a file", code: "stet README.md" },
-      { label: "Pick author + browser", code: 'stet --author "Amit" --app "Google Chrome" README.md' },
-      { label: "Fixed port, no auto-open", code: "stet --no-open --port 43117 README.md" },
+      { label: "Open a file", code: "stet-md README.md" },
+      { label: "Pick author + browser", code: 'stet-md --author "Amit" --app "Google Chrome" README.md' },
+      { label: "Fixed port, no auto-open", code: "stet-md --no-open --port 43117 README.md" },
     ],
     links: [
       { label: "Browser UI PRD", href: "/blob/main/docs/prd/03-local-server-and-browser-ui-prd.md" },
@@ -27,18 +27,18 @@ const features = [
     slug: "agent-cli",
     name: "Agent CLI",
     category: "Agent CLI",
-    usage: "stet list|reply|resolve",
+    usage: "stet-md list|reply|resolve",
     tagline: "AI agents review through a safe CLI instead of hand-editing markers.",
     detail:
       "Agents never hand-edit the stet:thread markers. They list open threads as JSON, reply to a thread by " +
-      "id, and resolve threads with an attribution message. stet --print-agent-protocol emits the full " +
+      "id, and resolve threads with an attribution message. stet-md --print-agent-protocol emits the full " +
       "machine-readable protocol. A comment helper exists for smoke tests and scripts.",
     commands: [
-      { label: "List threads as JSON", code: "stet list --json FILE.md" },
-      { label: "Reply to a thread", code: 'stet reply FILE.md --thread stt_... --author Claude --message "I updated the paragraph above."' },
-      { label: "Resolve a thread", code: 'stet resolve FILE.md --thread stt_... --author Claude --message "Resolved by the edit above."' },
-      { label: "Print the full protocol", code: "stet --print-agent-protocol" },
-      { label: "Seed a comment (scripts)", code: 'stet comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."' },
+      { label: "List threads as JSON", code: "stet-md list --json FILE.md" },
+      { label: "Reply to a thread", code: 'stet-md reply FILE.md --thread stt_... --author Claude --message "I updated the paragraph above."' },
+      { label: "Resolve a thread", code: 'stet-md resolve FILE.md --thread stt_... --author Claude --message "Resolved by the edit above."' },
+      { label: "Print the full protocol", code: "stet-md --print-agent-protocol" },
+      { label: "Seed a comment (scripts)", code: 'stet-md comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."' },
     ],
     links: [
       { label: "AGENT_PROTOCOL.md", href: "/blob/main/docs/AGENT_PROTOCOL.md" },
@@ -96,7 +96,7 @@ const features = [
       "and a restrictive CSP (self-only scripts/styles, self/data images, no objects/forms/framing). Escapes " +
       "raw Markdown HTML and blocks remote Markdown images/resources by default.",
     commands: [
-      { label: "Start hardened server only", code: "stet --no-open --port 43117 README.md" },
+      { label: "Start hardened server only", code: "stet-md --no-open --port 43117 README.md" },
     ],
     links: [
       { label: "Packaging / testing / release PRD", href: "/blob/main/docs/prd/05-packaging-testing-and-release-prd.md" },
@@ -108,8 +108,8 @@ const changes = [
   {
     date: "2026-06-07",
     items: [
-      "Renamed the project to Stet.md; published under the @amit-t npm scope.",
-      "Binaries stet and s, with legacy redline / rl aliases.",
+      "Renamed npm package and repo identity to @amit-t/stet-md / stet-md.",
+      "Binaries stet-md and stmd.",
       "Switched repository tooling to pnpm; pnpm-lock.yaml is the only lockfile.",
       "Scaffolded this GitHub Pages docs site with the gh-repo-mirror design system.",
     ],

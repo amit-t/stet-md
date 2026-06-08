@@ -4,9 +4,9 @@
 - **Revision:** v2, with kid-Claude architecture review incorporated
 - **Status:** Draft thesis / product requirements document
 - **Name:** **Stet.md** — threaded review comments that live inside the Markdown
-- **GitHub repo:** `stet.md` (standalone; not part of this `Profiles` dotfiles repo)
-- **npm package:** `@amit-t/stet.md`
-- **Binary:** `stet` (alias `rl`) — e.g. `stet prd.md`
+- **GitHub repo:** `stet-md` (standalone; not part of this `Profiles` dotfiles repo)
+- **npm package:** `@amit-t/stet-md`
+- **Binary:** `stet-md` (alias `stmd`) — e.g. `stet-md prd.md`
 - **On-disk marker token:** `stet:thread` · thread-ID prefix `stt_` · state dir `.stet/`
 - **Audience:** Amit, Codex/Claude/Devin agents, future implementer
 - **Related tools:** `mdview` / `mdv` browser preview, `mdvc` cMUX preview
@@ -52,7 +52,7 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 2. Amit runs:
 
    ```zsh
-   stet prd.md
+   stet-md prd.md
    ```
 
 3. Browser opens a rendered Markdown view.
@@ -60,8 +60,8 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 5. Amit saves.
 6. `prd.md` now contains machine-readable, human-readable comment threads.
 7. Amit gives `prd.md` back to the agent: “Look at the comments and let’s discuss.”
-8. Agent replies through `stet reply` or, as fallback, by editing the structured thread marker.
-9. Amit runs `stet prd.md` again and sees the full thread UI restored.
+8. Agent replies through `stet-md reply` or, as fallback, by editing the structured thread marker.
+9. Amit runs `stet-md prd.md` again and sees the full thread UI restored.
 
 ---
 
@@ -95,7 +95,7 @@ Amit reviewing AI-generated Markdown artifacts: PRDs, implementation plans, spec
 
 ## 6. Recommended product shape
 
-Build this as a new standalone utility first: **Stet.md**, installed with primary binary **`stet`** and alias **`rl`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
+Build this as a new standalone utility first: **Stet.md**, installed with primary binary **`stet-md`** and alias **`stmd`**. Ship it as its own project/package, not as a permanent feature inside this `Profiles` dotfiles repo.
 
 Do not force it into the existing single-file `mdview` script immediately. `mdview` is a lightweight preview tool. Review comments require a local server, write endpoints, AST positions, byte-splice persistence, save conflict handling, UI state, and tests across file mutation. That is a different complexity class.
 
@@ -103,8 +103,8 @@ Recommended relationship:
 
 - `mdview`: fast read-only Markdown preview.
 - `mdvc`: cMUX native preview wrapper.
-- `stet` / `rl`: write-capable Markdown review and comment threading.
-- Later: `mdview --review file.md` can delegate to `stet` if installed.
+- `stet-md` / `stmd`: write-capable Markdown review and comment threading.
+- Later: `mdview --review file.md` can delegate to `stet-md` if installed.
 
 This avoids bloating `mdview` while keeping user ergonomics familiar.
 
@@ -115,10 +115,10 @@ This avoids bloating `mdview` while keeping user ergonomics familiar.
 ### 7.1 Launch
 
 ```zsh
-stet path/to/file.md
-rl path/to/file.md
-stet --app "Google Chrome" docs/prd.md
-stet --no-open docs/prd.md
+stet-md path/to/file.md
+stmd path/to/file.md
+stet-md --app "Google Chrome" docs/prd.md
+stet-md --no-open docs/prd.md
 ```
 
 Default behavior:
@@ -191,7 +191,7 @@ Persist review threads as readable Markdown blocks bracketed by machine-readable
 Reason:
 
 - AI agents can read and modify the thread text without special tooling.
-- Markdown renderers still show useful context if opened without `stet`.
+- Markdown renderers still show useful context if opened without `stet-md`.
 - The utility can parse exact thread boundaries reliably.
 - Git diffs remain understandable.
 
@@ -269,7 +269,7 @@ messages:
 <!-- /stet:thread -->
 ```
 
-Agent reply after `stet reply`:
+Agent reply after `stet-md reply`:
 
 ```markdown
 <!-- stet:thread
@@ -369,17 +369,17 @@ Agents should prefer CLI commands because the CLI supplies current time, IDs, es
 MVP agent commands:
 
 ```zsh
-stet list --json FILE.md
-stet reply FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Agreed. I changed goal 6."
-stet resolve FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Resolved by the edit above."
+stet-md list --json FILE.md
+stet-md reply FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Agreed. I changed goal 6."
+stet-md resolve FILE.md --thread stt_20260607_150015_7f3a9c --author Claude --message "Resolved by the edit above."
 ```
 
 Post-MVP agent commands:
 
 ```zsh
-stet comment FILE.md --target heading:"Product goals" --author Claude --message "Question about this section."
-stet strip-comments FILE.md --output clean.md
-stet export-comments FILE.md --format json
+stet-md comment FILE.md --target heading:"Product goals" --author Claude --message "Question about this section."
+stet-md strip-comments FILE.md --output clean.md
+stet-md export-comments FILE.md --format json
 ```
 
 ### 10.2 Fallback path: manual raw Markdown edit
@@ -397,7 +397,7 @@ Rules for agents:
 7. Do not edit the generated visible blockquote by hand unless also updating structured data.
 8. If unsure, leave the thread open and ask in the thread.
 
-This protocol should be included in `README.md`, `docs/AGENT_PROTOCOL.md`, and `stet --print-agent-protocol`.
+This protocol should be included in `README.md`, `docs/AGENT_PROTOCOL.md`, and `stet-md --print-agent-protocol`.
 
 ---
 
@@ -434,7 +434,7 @@ MVP can implement option 1 and option 2. Force save should not ship until patch 
 
 ### 11.3 Multiple writers
 
-MVP should detect two `stet` instances on one file and warn. Use a lock file under `.stet/locks/` containing PID, hostname, started-at timestamp, and file hash. If the PID is gone or the lock mtime is stale, show a recoverable stale-lock warning. Last-write-wins behavior is unacceptable without a warning.
+MVP should detect two `stet-md` instances on one file and warn. Use a lock file under `.stet/locks/` containing PID, hostname, started-at timestamp, and file hash. If the PID is gone or the lock mtime is stale, show a recoverable stale-lock warning. Last-write-wins behavior is unacceptable without a warning.
 
 ---
 
@@ -470,7 +470,7 @@ Reasoning:
 ## 13. System architecture
 
 ```text
-stet CLI
+stet-md CLI
   ├─ resolves file path
   ├─ starts local review server
   ├─ opens browser
@@ -510,28 +510,28 @@ Browser UI
 MVP commands:
 
 ```zsh
-stet FILE.md
-stet --author "Amit" FILE.md
-stet --app "Google Chrome" FILE.md
-stet --port 43117 FILE.md
-stet --no-open FILE.md
-stet list --json FILE.md
-stet reply FILE.md --thread THREAD_ID --author Claude --message "..."
-stet resolve FILE.md --thread THREAD_ID --author Claude --message "..."
-stet --print-agent-protocol
-stet --version
-stet --help
+stet-md FILE.md
+stet-md --author "Amit" FILE.md
+stet-md --app "Google Chrome" FILE.md
+stet-md --port 43117 FILE.md
+stet-md --no-open FILE.md
+stet-md list --json FILE.md
+stet-md reply FILE.md --thread THREAD_ID --author Claude --message "..."
+stet-md resolve FILE.md --thread THREAD_ID --author Claude --message "..."
+stet-md --print-agent-protocol
+stet-md --version
+stet-md --help
 ```
 
 Later commands:
 
 ```zsh
-stet --export-comments json FILE.md
-stet --strip-comments FILE.md
-stet --list-comments FILE.md
-stet --storage inline|appendix FILE.md
-stet --readonly FILE.md
-stet comment FILE.md --target heading:"Product goals" --author Amit --message "..."
+stet-md --export-comments json FILE.md
+stet-md --strip-comments FILE.md
+stet-md --list-comments FILE.md
+stet-md --storage inline|appendix FILE.md
+stet-md --readonly FILE.md
+stet-md comment FILE.md --target heading:"Product goals" --author Amit --message "..."
 ```
 
 ---
@@ -615,8 +615,8 @@ In scope:
 3. Double-click a heading or paragraph and write a comment.
 4. Save comment into the same Markdown file as an inline thread block using byte splices.
 5. Reopen the same file and see the thread restored beside the target.
-6. Run `stet list --json FILE.md` and see the thread.
-7. Run `stet reply FILE.md --thread ID --author Claude --message "..."`.
+6. Run `stet-md list --json FILE.md` and see the thread.
+7. Run `stet-md reply FILE.md --thread ID --author Claude --message "..."`.
 8. Reopen and see the CLI-added reply in the browser thread.
 9. Mark thread resolved through browser or CLI and save status back to Markdown.
 10. Detect whole-file external modification before overwrite.
@@ -721,10 +721,10 @@ Browser tests begin after parser and splice writer are reliable:
 Use the tool on this PRD itself:
 
 ```zsh
-stet docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md
+stet-md docs/superpowers/specs/2026-06-07-markdown-review-comments-prd.md
 ```
 
-Add review comments, save, hand the file to an agent, ask it to respond via `stet reply`, reopen.
+Add review comments, save, hand the file to an agent, ask it to respond via `stet-md reply`, reopen.
 
 ---
 
@@ -732,7 +732,7 @@ Add review comments, save, hand the file to an agent, ask it to respond via `ste
 
 ### Risk: Markdown gets noisy
 
-Mitigation: keep thread blocks compact, use generated `[!NOTE]` blockquotes, collapse in `stet` UI, and optionally support appendix storage later.
+Mitigation: keep thread blocks compact, use generated `[!NOTE]` blockquotes, collapse in `stet-md` UI, and optionally support appendix storage later.
 
 ### Risk: Anchors break after agent rewrites document
 
@@ -744,11 +744,11 @@ Mitigation: do not use pure `file://`; use a local loopback server with authenti
 
 ### Risk: Existing `mdview` becomes bloated
 
-Mitigation: build standalone `stet` first. Integrate only through delegation once stable.
+Mitigation: build standalone `stet-md` first. Integrate only through delegation once stable.
 
 ### Risk: Agents corrupt thread format
 
-Mitigation: provide `stet list/reply/resolve` CLI commands as the blessed agent path. Keep manual edits as fallback. Parser should fail loudly on malformed structured markers and preserve raw content.
+Mitigation: provide `stet-md list/reply/resolve` CLI commands as the blessed agent path. Keep manual edits as fallback. Parser should fail loudly on malformed structured markers and preserve raw content.
 
 ### Risk: Full-document rewrites destroy trust
 
@@ -772,12 +772,12 @@ Mitigation: document formatter limitations, include `version: 1`, prefer CLI ope
 
 The first successful release is done when all of these are true:
 
-1. Amit can run `stet prd.md` and browser opens.
+1. Amit can run `stet-md prd.md` and browser opens.
 2. Double-clicking a heading or paragraph opens a comment composer.
 3. Saving writes a readable structured thread block into `prd.md`.
 4. Save preserves all untouched bytes exactly.
 5. An AI agent can read the raw Markdown and understand the comment target, timestamp, author, status, and requested discussion.
-6. An AI agent can run `stet reply` to append a response.
+6. An AI agent can run `stet-md reply` to append a response.
 7. Reopening `prd.md` shows the human comment and agent reply in one thread.
 8. Resolved/open status survives save and reopen.
 9. External file modifications are detected before overwrite.
@@ -792,7 +792,7 @@ Build Stet.md as a separate TypeScript local-server utility with Markdown-embedd
 
 The critical product decision is not the renderer; it is the storage contract. Once comments live in the Markdown in a predictable, agent-friendly thread format, every other surface can be swapped later: browser UI, cMUX panel, CLI summary, GitHub export, or agent-specific workflows.
 
-Start with heading/paragraph comments, inline thread blocks, explicit Save, `list/reply/resolve` CLI, and agent protocol. Dogfood it on AI-generated PRDs immediately. Only then decide whether to fold it into `mdview`, keep it standalone, or create a shared `mdview`/`stet` family.
+Start with heading/paragraph comments, inline thread blocks, explicit Save, `list/reply/resolve` CLI, and agent protocol. Dogfood it on AI-generated PRDs immediately. Only then decide whether to fold it into `mdview`, keep it standalone, or create a shared `mdview`/`stet-md` family.
 
 ---
 

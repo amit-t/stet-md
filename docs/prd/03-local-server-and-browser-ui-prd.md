@@ -7,7 +7,7 @@ Provide the human review surface: open Markdown in a browser, add comments to el
 ## Launch flow
 
 ```zsh
-stet path/to/file.md
+stet-md path/to/file.md
 ```
 
 1. Resolve absolute canonical file path.
@@ -67,7 +67,7 @@ On reopen:
 
 ## Acceptance criteria
 
-- Browser opens for `stet prd.md`.
+- Browser opens for `stet-md prd.md`.
 - Document renders headings, paragraphs, lists, blockquotes, and code blocks.
 - Double-click heading/paragraph opens composer.
 - Saving writes `stet:thread` block.

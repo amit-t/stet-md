@@ -38,19 +38,21 @@ function packageVersion(): string {
 const HELP = `Stet.md — Markdown review comments that live inside the file
 
 Usage:
-  stet list --json FILE.md                 List threads as deterministic JSON
-  stet reply FILE.md --thread ID --author NAME --message "..."
+  Alias: stmd
+
+  stet-md list --json FILE.md                 List threads as deterministic JSON
+  stet-md reply FILE.md --thread ID --author NAME --message "..."
                                               Append a reply to a thread
-  stet resolve FILE.md --thread ID [--author NAME] [--message "..."]
+  stet-md resolve FILE.md --thread ID [--author NAME] [--message "..."]
                                               Mark a thread resolved
-  stet comment FILE.md --target KIND:VALUE --author NAME --message "..."
+  stet-md comment FILE.md --target KIND:VALUE --author NAME --message "..."
                                               Create a new thread (KIND = heading|paragraph|document)
-  stet --print-agent-protocol              Print the agent collaboration protocol
-  stet --version                           Print version
-  stet --help                              Print this help
+  stet-md --print-agent-protocol              Print the agent collaboration protocol
+  stet-md --version                           Print version
+  stet-md --help                              Print this help
 
 Browser review UI:
-  stet FILE.md [--author NAME] [--app APP] [--port N] [--no-open]
+  stet-md FILE.md [--author NAME] [--app APP] [--port N] [--no-open]
                                               Opens the local review server (provided by the
                                               server subsystem; not bundled in this core build).
 
@@ -70,13 +72,13 @@ function exitCodeFor(err: StetError): number {
 
 function bareFileNotice(file: string, ctx: CliContext): number {
   ctx.err(
-    `stet: the browser review server is provided by the server subsystem ` +
+    `stet-md: the browser review server is provided by the server subsystem ` +
       `and is not bundled in this core build.`,
   );
   ctx.err(
-    `Use the agent CLI instead, e.g.:  stet list --json ${file}`,
+    `Use the agent CLI instead, e.g.:  stet-md list --json ${file}`,
   );
-  ctx.err(`See 'stet --print-agent-protocol' for the agent workflow.`);
+  ctx.err(`See 'stet-md --print-agent-protocol' for the agent workflow.`);
   return 0;
 }
 
@@ -144,8 +146,8 @@ export async function runCli(
         if (/\.(md|markdown|mdx)$/i.test(command) || parsed.positionals.length >= 1) {
           return bareFileNotice(command, ctx);
         }
-        err(`stet: unknown command "${command}"`);
-        err(`Run 'stet --help' for usage.`);
+        err(`stet-md: unknown command "${command}"`);
+        err(`Run 'stet-md --help' for usage.`);
         return 2;
       }
     }
@@ -157,9 +159,9 @@ export async function runCli(
 function handleError(e: unknown, err: (l: string) => void): number {
   if (isStetError(e)) {
     const where = e.line ? ` (line ${e.line})` : "";
-    err(`stet: ${e.message}${where}`);
+    err(`stet-md: ${e.message}${where}`);
     return exitCodeFor(e);
   }
-  err(`stet: ${(e as Error)?.message ?? String(e)}`);
+  err(`stet-md: ${(e as Error)?.message ?? String(e)}`);
   return 1;
 }

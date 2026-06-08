@@ -7,9 +7,9 @@ Stet.md stores review threads inside Markdown files. The Markdown file is the so
 Use the CLI. It handles IDs, UTC timestamps, marker escaping, generated blockquote updates, backups, and byte-splice writes.
 
 ```zsh
-stet list --json FILE.md
-stet reply FILE.md --thread THREAD_ID --author Claude --message "I changed the section above."
-stet resolve FILE.md --thread THREAD_ID --author Claude --message "Resolved by the edit above."
+stet-md list --json FILE.md
+stet-md reply FILE.md --thread THREAD_ID --author Claude --message "I changed the section above."
+stet-md resolve FILE.md --thread THREAD_ID --author Claude --message "Resolved by the edit above."
 ```
 
 ## Manual fallback

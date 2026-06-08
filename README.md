@@ -2,15 +2,15 @@
 
 Stet.md is a local-first Markdown review utility. It opens one Markdown file in a loopback browser UI, lets humans add threaded review comments, saves those threads back into the same Markdown file, and lets AI agents reply through a safe CLI.
 
-- npm package: `@amit-t/stet.md`
-- binaries: `stet`, `s`; legacy aliases: `redline`, `rl`
+- npm package: `@amit-t/stet-md`
+- binaries: `stet-md`, `stmd`
 - marker: `stet:thread`
 - thread IDs: `stt_...`
 - transient state: `.stet/`
 
 ## Documentation
 
-Browsable docs site (GitHub Pages): **https://amit-t.github.io/stet.md/**
+Browsable docs site (GitHub Pages): **https://amit-t.github.io/stet-md/**
 
 The site is a static neo-brutalist index served from [`docs/`](docs/): a capability explorer (Browser UI, Agent CLI, Storage, Safety, Security) with per-capability commands, a changelog, search/filter, dark mode, and copy-to-clipboard. It was scaffolded with the `gh-repo-mirror` skill design system; source lives in [`docs/index.html`](docs/index.html), [`docs/site.css`](docs/site.css), and [`docs/site.js`](docs/site.js).
 
@@ -24,67 +24,66 @@ Enable Pages once: repo **Settings → Pages → Source: Deploy from a branch �
 
 ## Install
 
-### Install from Amit's local checkout
+Package metadata targets [`@amit-t/stet-md`](https://www.npmjs.com/package/@amit-t/stet-md). Requires Node `>=20.10`.
 
-Use this when the repo already exists at `/Users/amittiwari/Projects/Tools-Utilities/stet.md`:
+### Install from local checkout
+
+Use this before the npm package is published:
 
 ```zsh
-cd /Users/amittiwari/Projects/Tools-Utilities/stet.md
 pnpm install
 pnpm run build
 pnpm link --global
 rehash
-stet --version
-s --help
+stet-md --version
+stmd --help
 ```
 
 If `pnpm link --global` says the global bin directory is not configured, run `pnpm setup`, restart the shell, then repeat `pnpm link --global`.
 
-### No-clone one-shot usage after publish
-
-After Stet.md is published to npm, anyone can run it without cloning this repo:
+### Run without installing after npm publish
 
 ```zsh
-npx @amit-t/stet.md@latest README.md
+npx @amit-t/stet-md@latest README.md
 # or
-pnpm dlx @amit-t/stet.md README.md
+pnpm dlx @amit-t/stet-md README.md
 ```
 
-`npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `stet` binary, and leaves no project dependency behind. Pass the same flags you would pass to `stet`:
+`npx`/`pnpm dlx` downloads the package to a temporary tool cache, runs the `stet-md` binary, and leaves no project dependency behind. Pass the same flags you would pass to `stet-md`:
 
 ```zsh
-npx @amit-t/stet.md@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
-pnpm dlx @amit-t/stet.md --no-open --port 43117 docs/prd/00-stet-master-prd.md
+npx @amit-t/stet-md@latest --author "Amit" --app "Google Chrome" docs/prd/00-stet-master-prd.md
+pnpm dlx @amit-t/stet-md --no-open --port 43117 docs/prd/00-stet-master-prd.md
 ```
 
-### Persistent install after publish
+### Persistent install after npm publish
 
-For a permanent terminal command without cloning the repo:
+For a permanent terminal command:
 
 ```zsh
-pnpm add --global @amit-t/stet.md
+pnpm add --global @amit-t/stet-md
 # or, if you prefer npm for global tools:
-npm install -g @amit-t/stet.md
+npm install -g @amit-t/stet-md
 
-stet --version
-stet README.md
+stet-md --version
+stet-md README.md
 ```
 
 ## Quick start
 
 ```zsh
-stet README.md
+stet-md README.md
 # or
-s README.md
+stmd README.md
 ```
 
 Useful launch flags:
 
 ```zsh
-stet --author "Amit" README.md
-stet --app "Google Chrome" README.md
-stet --port 43117 README.md
-stet --no-open README.md
+stet-md --author "Amit" README.md
+stet-md --app "Google Chrome" README.md
+stet-md --port 43117 README.md
+stet-md --no-open README.md
 ```
 
 The server binds to `127.0.0.1`, sets an HttpOnly `SameSite=Strict` cookie, and opens `http://127.0.0.1:<port>/`. The token is never placed in the URL.
@@ -107,16 +106,16 @@ Resolved threads are collapsed by default. Orphaned threads appear under **Needs
 Agents should use CLI commands instead of hand-editing markers:
 
 ```zsh
-stet list --json FILE.md
-stet reply FILE.md --thread stt_... --author Claude --message "I updated the paragraph above."
-stet resolve FILE.md --thread stt_... --author Claude --message "Resolved by the edit above."
-stet --print-agent-protocol
+stet-md list --json FILE.md
+stet-md reply FILE.md --thread stt_... --author Claude --message "I updated the paragraph above."
+stet-md resolve FILE.md --thread stt_... --author Claude --message "Resolved by the edit above."
+stet-md --print-agent-protocol
 ```
 
 A helper exists for smoke tests and scripts:
 
 ```zsh
-stet comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."
+stet-md comment FILE.md --target paragraph:0 --author Amit --message "Please tighten this."
 ```
 
 Full protocol: [`docs/AGENT_PROTOCOL.md`](docs/AGENT_PROTOCOL.md).
@@ -211,7 +210,7 @@ MVP release requires:
 
 1. core parser/splice tests pass;
 2. server, security, and browser smoke tests pass;
-3. `stet --version`, `--help`, `--print-agent-protocol` work;
+3. `stet-md --version`, `stet-md --help`, `stet-md --print-agent-protocol`, and `stmd --help` work;
 4. README documents install, usage, storage, security, formatter caveats, and agent protocol;
 5. release notes list MVP limitations;
 6. dogfood run against the master PRD or a byte-identical copy.

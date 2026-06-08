@@ -65,13 +65,14 @@ describe("informational commands", () => {
     const r = await run(["--help"]);
     expect(r.code).toBe(0);
     expect(r.stdout).toContain("Stet.md");
-    expect(r.stdout).toContain("stet list --json FILE.md");
+    expect(r.stdout).toContain("stet-md list --json FILE.md");
+    expect(r.stdout).toContain("Alias: stmd");
   });
   it("--print-agent-protocol prints the protocol", async () => {
     const r = await run(["--print-agent-protocol"]);
     expect(r.code).toBe(0);
     expect(r.stdout).toContain("Stet.md agent protocol");
-    expect(r.stdout).toContain("stet reply FILE.md");
+    expect(r.stdout).toContain("stet-md reply FILE.md");
   });
 });
 

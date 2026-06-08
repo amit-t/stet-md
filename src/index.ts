@@ -1,5 +1,5 @@
 /**
- * stet — public API.
+ * stet-md — public API.
  * Storage core + safety primitives + CLI runner.
  */
 export * from "./core/index.js";

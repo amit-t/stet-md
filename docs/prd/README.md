@@ -42,7 +42,7 @@ Reason: persistence contract must be trusted before browser UX can safely write 
 Amit can run:
 
 ```zsh
-stet prd.md
+stet-md prd.md
 ```
 
 Then:
@@ -51,6 +51,6 @@ Then:
 2. Amit double-clicks a heading or paragraph.
 3. Amit writes a comment and saves.
 4. `prd.md` gains a structured `stet:thread` block.
-5. An agent runs `stet reply prd.md --thread <id> --author Claude --message "..."`.
-6. Reopening `stet prd.md` shows both human comment and agent reply in one thread.
+5. An agent runs `stet-md reply prd.md --thread <id> --author Claude --message "..."`.
+6. Reopening `stet-md prd.md` shows both human comment and agent reply in one thread.
 7. Untouched Markdown bytes remain identical.
