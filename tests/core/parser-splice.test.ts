@@ -31,6 +31,80 @@ describe("core parser and byte-splice writer", () => {
     ]);
   });
 
+  test("renders safe details/summary blocks as collapsibles, including nested details", () => {
+    const file = tempMarkdown([
+      "## Questions",
+      "",
+      "<details>",
+      "<summary><strong>1. Question?</strong></summary>",
+      "",
+      "- **Why it matters:** Reason.",
+      "",
+      "<details>",
+      "<summary><em>1a. Follow-up?</em></summary>",
+      "",
+      "Nested body.",
+      "",
+      "</details>",
+      "",
+      "</details>",
+      "",
+    ].join("\n"));
+
+    const doc = loadReviewDocument(file);
+
+    expect(doc.html).toContain("<details>");
+    expect(doc.html).toContain("<summary><strong>1. Question?</strong></summary>");
+    expect(doc.html).toContain("<summary><em>1a. Follow-up?</em></summary>");
+    expect((doc.html.match(/<details>/g) ?? [])).toHaveLength(2);
+    expect(doc.html).toContain("<ul><li>**Why it matters:** Reason.</li></ul>");
+    expect(doc.html).toContain("<p>Nested body.</p>");
+    expect(doc.html).not.toContain("&lt;details&gt;");
+    expect(doc.html).not.toContain("&lt;summary&gt;");
+    expect(doc.warnings.some((warning) => warning.kind === "unsafe_html_escaped")).toBe(false);
+  });
+
+  test("escapes unsafe HTML inside otherwise safe details blocks", () => {
+    const file = tempMarkdown([
+      "<details>",
+      "<summary><strong>Safe</strong> <script>alert('summary')</script></summary>",
+      "",
+      "<script>alert('body')</script>",
+      "",
+      "</details>",
+      "",
+    ].join("\n"));
+
+    const doc = loadReviewDocument(file);
+
+    expect(doc.html).toContain("<details>");
+    expect(doc.html).toContain("<summary><strong>Safe</strong> &lt;script&gt;alert(&#39;summary&#39;)&lt;/script&gt;</summary>");
+    expect(doc.html).not.toContain("<script>");
+    expect(doc.html).toContain("&lt;script&gt;alert(&#39;body&#39;)&lt;/script&gt;");
+    expect(doc.warnings.some((warning) => warning.kind === "unsafe_html_escaped")).toBe(true);
+  });
+
+  test("escapes unmatched details opener and still renders later balanced details", () => {
+    const file = tempMarkdown([
+      "<details>",
+      "<summary>Outer</summary>",
+      "",
+      "<details>",
+      "Broken nested body.",
+      "",
+      "</details>",
+      "",
+    ].join("\n"));
+
+    const doc = loadReviewDocument(file);
+
+    expect(doc.html).toContain("&lt;details&gt;");
+    expect(doc.html).toContain("&lt;summary&gt;Outer&lt;/summary&gt;");
+    expect(doc.html).toContain("<details>");
+    expect(doc.html).toContain("Broken nested body.");
+    expect(doc.warnings.some((warning) => warning.kind === "unsafe_html_escaped")).toBe(true);
+  });
+
   test("inserts heading and paragraph comments without rewriting unrelated bytes", () => {
     const before = "# Title\n\nParagraph one has trailing spaces.  \n\nReference link stays [same][id].\n\n[id]: https://example.com\n";
     const file = tempMarkdown(before);

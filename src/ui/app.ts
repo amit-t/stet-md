@@ -20,6 +20,12 @@ type UiThread = {
   anchor?: { state: "attached" | "content_drifted" | "orphan"; targetId?: string; message?: string };
 };
 
+type UiWarning = {
+  kind: string;
+  message: string;
+  threadId?: string;
+};
+
 type UiDocument = {
   filePath: string;
   fileName: string;
@@ -29,7 +35,7 @@ type UiDocument = {
   threads: UiThread[];
   dirty: boolean;
   conflict: { changedOnDisk: boolean; message?: string };
-  warnings: { kind: string; message: string; threadId?: string }[];
+  warnings: UiWarning[];
   errors: { message: string; lineStart?: number; lineEnd?: number }[];
 };
 
@@ -88,6 +94,22 @@ export function createStetApp(options: AppOptions): StetApp {
     return win.getSelection?.()?.toString() || "";
   }
 
+  function summarizeWarnings(warnings: UiWarning[]): string[] {
+    const groups = new Map<string, { message: string; count: number }>();
+    for (const warning of warnings) {
+      const key = `${warning.kind}\u0000${warning.threadId ?? ""}\u0000${warning.message}`;
+      const existing = groups.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        groups.set(key, { message: warning.message, count: 1 });
+      }
+    }
+    return [...groups.values()].map((warning) =>
+      warning.count === 1 ? warning.message : `${warning.message} (${warning.count} occurrences)`,
+    );
+  }
+
   function renderTopbar(): void {
     if (!state) return;
     const openCount = state.threads.filter((thread) => thread.status === "open").length;
@@ -108,7 +130,7 @@ export function createStetApp(options: AppOptions): StetApp {
     const messages: string[] = [];
     if (state.conflict.changedOnDisk) messages.push(state.conflict.message || "File changed on disk.");
     if (state.errors.length > 0) messages.push(`Malformed Stet.md marker: ${state.errors.map((error) => error.message).join("; ")}`);
-    const warningText = state.warnings.map((warning) => warning.message).join(" ");
+    const warningText = summarizeWarnings(state.warnings).join(" ");
     if (warningText) messages.push(warningText);
     banner.textContent = messages.join(" ");
     banner.className = messages.length > 0 ? "visible" : "";

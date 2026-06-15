@@ -108,4 +108,21 @@ describe("browser UI smoke", () => {
     expect(window.document.querySelector("#banner")!.textContent).toContain("File changed on disk");
     expect(window.document.querySelector<HTMLButtonElement>("button[data-action='save']")!.disabled).toBe(true);
   });
+
+  test("duplicate warnings are summarized in the banner", async () => {
+    const window = createWindow();
+    const fetchMock = vi.fn(async () => Response.json({
+      ...documentPayload,
+      warnings: [
+        { kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." },
+        { kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." },
+        { kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." },
+      ],
+    }));
+    const app = createStetApp({ window: window as unknown as Window & typeof globalThis, fetch: fetchMock as unknown as typeof fetch });
+
+    await app.start();
+
+    expect(window.document.querySelector("#banner")!.textContent).toBe("Raw Markdown HTML was escaped. (3 occurrences)");
+  });
 });

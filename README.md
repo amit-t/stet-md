@@ -93,11 +93,12 @@ The server binds to `127.0.0.1`, sets an HttpOnly `SameSite=Strict` cookie, and 
 The UI includes:
 
 - top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview;
-- rendered Markdown body with commentable headings and paragraphs;
+- rendered Markdown body with commentable headings and paragraphs plus safe `<details>/<summary>` collapsibles;
 - `+` affordances, double-click comments, keyboard `c` on focused blocks, and document-level comments;
 - side-panel thread cards with replies, resolve/reopen controls, orphan and content-drift warnings;
 - localStorage draft recovery keyed by file path and loaded file hash;
-- conflict banner when the file changes on disk before save.
+- conflict banner when the file changes on disk before save;
+- summarized render/security warnings, so repeated raw-HTML escapes show once with an occurrence count.
 
 Resolved threads are collapsed by default. Orphaned threads appear under **Needs re-attach** and remain preserved in the Markdown file.
 
@@ -180,7 +181,7 @@ Stet.md is local-only and has no telemetry.
 - Validates `Host` to reject DNS rebinding attempts.
 - Sends `Referrer-Policy: no-referrer`.
 - Sends restrictive CSP: self-only scripts/styles, self/data images, no objects/forms/framing.
-- Escapes raw Markdown HTML by default.
+- Escapes raw Markdown HTML by default; sanitized `<details>/<summary>` collapsibles render, with nested details supported.
 - Blocks remote Markdown images/resources by default.
 
 ## Development

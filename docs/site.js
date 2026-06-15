@@ -10,10 +10,11 @@ const features = [
     tagline: "Threaded review comments in a hardened loopback browser UI.",
     detail:
       "Top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview. " +
-      "Rendered Markdown body with commentable headings and paragraphs; + affordances, double-click " +
+      "Rendered Markdown body with commentable headings and paragraphs plus safe details/summary collapsibles; + affordances, double-click " +
       "comments, keyboard c on focused blocks, and document-level comments. Side-panel thread cards with " +
       "replies, resolve/reopen controls, orphan and content-drift warnings. localStorage draft recovery " +
-      "keyed by file path and loaded file hash. Conflict banner when the file changes on disk before save.",
+      "keyed by file path and loaded file hash. Conflict banner when the file changes on disk before save. " +
+      "Repeated render/security warnings are summarized with occurrence counts.",
     commands: [
       { label: "Open a file", code: "stet-md README.md" },
       { label: "Pick author + browser", code: 'stet-md --author "Amit" --app "Google Chrome" README.md' },
@@ -94,7 +95,8 @@ const features = [
       "SameSite=Strict cookie token (never placed in the URL); missing or wrong tokens are rejected for API " +
       "routes. Validates the Host header to reject DNS-rebinding attempts. Sends Referrer-Policy: no-referrer " +
       "and a restrictive CSP (self-only scripts/styles, self/data images, no objects/forms/framing). Escapes " +
-      "raw Markdown HTML and blocks remote Markdown images/resources by default.",
+      "raw Markdown HTML and blocks remote Markdown images/resources by default; sanitized details/summary " +
+      "collapsibles render with nested details support.",
     commands: [
       { label: "Start hardened server only", code: "stet-md --no-open --port 43117 README.md" },
     ],

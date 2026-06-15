@@ -91,7 +91,7 @@ export type ReviewParseError = {
 };
 
 export type RenderedBlock = {
-  type: "heading" | "paragraph" | "list" | "blockquote" | "code";
+  type: "heading" | "paragraph" | "list" | "blockquote" | "code" | "details";
   html: string;
   range: ByteRange;
   lineStart: number;

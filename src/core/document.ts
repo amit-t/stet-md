@@ -155,6 +155,30 @@ function isTable(line: Line): boolean {
   return /^\s*\|.*\|\s*$/.test(lineText(line));
 }
 
+function detailsOpenMatch(line: Line): RegExpMatchArray | null {
+  return lineText(line).trim().match(/^<details(?:\s+(open))?\s*>$/i);
+}
+
+function isDetailsClose(line: Line): boolean {
+  return /^<\/details\s*>$/i.test(lineText(line).trim());
+}
+
+function summaryMatch(line: Line): RegExpMatchArray | null {
+  return lineText(line).trim().match(/^<summary\s*>([\s\S]*)<\/summary\s*>$/i);
+}
+
+function findDetailsEnd(lines: Line[], start: number): number | undefined {
+  let depth = 0;
+  for (let index = start; index < lines.length; index += 1) {
+    if (detailsOpenMatch(lines[index])) depth += 1;
+    if (isDetailsClose(lines[index])) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return undefined;
+}
+
 function collectText(lines: Line[], start: number, endInclusive: number): string {
   return lines.slice(start, endInclusive + 1).map((line) => lineText(line)).join("\n").replace(/\n+$/g, "");
 }
@@ -189,6 +213,127 @@ function renderInline(text: string, warnings: ReviewWarning[]): string {
     return label;
   });
   return safe;
+}
+
+function rawHtmlWarning(warnings: ReviewWarning[]): void {
+  warnings.push({ kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." });
+}
+
+function containsUnsafeInlineHtml(text: string): boolean {
+  const withoutAllowedTags = text.replace(/<\/?(?:strong|em|code|kbd|s|sup|sub)\s*>/gi, "").replace(/<br\s*\/?>/gi, "");
+  return /<[a-zA-Z][\s\S]*>/.test(withoutAllowedTags);
+}
+
+function renderInlineWithSafeHtml(text: string, warnings: ReviewWarning[]): string {
+  if (containsUnsafeInlineHtml(text)) rawHtmlWarning(warnings);
+  return renderInline(text, warnings)
+    .replace(/&lt;(\/?(?:strong|em|code|kbd|s|sup|sub))&gt;/gi, "<$1>")
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+}
+
+function renderDetailsBlock(lines: Line[], start: number, end: number, warnings: ReviewWarning[]): string {
+  const open = detailsOpenMatch(lines[start])?.[1] ? " open" : "";
+  let index = start + 1;
+  while (index < end && isBlank(lines[index])) index += 1;
+
+  const summary = index < end ? summaryMatch(lines[index]) : null;
+  const summaryHtml = summary ? `<summary>${renderInlineWithSafeHtml(summary[1], warnings)}</summary>` : "";
+  if (summary) index += 1;
+
+  const inner = renderMarkdownFragment(lines, index, end - 1, warnings);
+  return [`<details${open}>`, summaryHtml, inner, "</details>"].filter(Boolean).join("\n");
+}
+
+function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: number, warnings: ReviewWarning[]): string {
+  const html: string[] = [];
+  let i = startIndex;
+  while (i <= endIndex) {
+    const line = lines[i];
+    if (isBlank(line)) {
+      i += 1;
+      continue;
+    }
+
+    if (detailsOpenMatch(line)) {
+      const nestedDetailsEnd = findDetailsEnd(lines, i);
+      if (nestedDetailsEnd !== undefined && nestedDetailsEnd <= endIndex) {
+        html.push(renderDetailsBlock(lines, i, nestedDetailsEnd, warnings));
+        i = nestedDetailsEnd + 1;
+        continue;
+      }
+      rawHtmlWarning(warnings);
+      html.push(`<p>${renderInline(lineText(line), warnings)}</p>`);
+      i += 1;
+      continue;
+    }
+
+    const heading = headingMatch(line);
+    if (heading) {
+      const level = heading[1].length;
+      html.push(`<h${level}>${renderInline(stripMarkdownInline(heading[2]), warnings)}</h${level}>`);
+      i += 1;
+      continue;
+    }
+
+    const fence = isFence(line);
+    if (fence) {
+      const codeStart = i;
+      i += 1;
+      while (i <= endIndex && !lineText(lines[i]).startsWith(fence[1])) i += 1;
+      const codeEnd = Math.min(i, endIndex);
+      const codeLines = lines.slice(codeStart + 1, Math.max(codeStart + 1, codeEnd)).map((candidate) => candidate.content).join("\n");
+      html.push(`<pre><code>${escapeHtml(codeLines)}</code></pre>`);
+      i = codeEnd + 1;
+      continue;
+    }
+
+    if (isList(line)) {
+      const items: string[] = [];
+      while (i <= endIndex && (isList(lines[i]) || (lineText(lines[i]).startsWith("  ") && !isBlank(lines[i]) && !detailsOpenMatch(lines[i])))) {
+        const item = lineText(lines[i]).replace(/^\s{0,3}(?:[-+*]|\d+[.)])\s+/, "");
+        if (item.trim()) items.push(`<li>${renderInline(item, warnings)}</li>`);
+        i += 1;
+      }
+      html.push(`<ul>${items.join("")}</ul>`);
+      continue;
+    }
+
+    if (isBlockquote(line)) {
+      const parts: string[] = [];
+      while (i <= endIndex && isBlockquote(lines[i])) {
+        parts.push(lineText(lines[i]).replace(/^\s{0,3}>\s?/, ""));
+        i += 1;
+      }
+      html.push(`<blockquote>${renderInline(parts.join("\n"), warnings)}</blockquote>`);
+      continue;
+    }
+
+    if (isTable(line)) {
+      const tableStart = i;
+      while (i <= endIndex && isTable(lines[i])) i += 1;
+      const tableText = escapeHtml(lines.slice(tableStart, i).map((candidate) => lineText(candidate)).join("\n"));
+      html.push(`<pre><code>${tableText}</code></pre>`);
+      continue;
+    }
+
+    const paragraphStart = i;
+    while (
+      i <= endIndex &&
+      !isBlank(lines[i]) &&
+      !headingMatch(lines[i]) &&
+      !isFence(lines[i]) &&
+      !isList(lines[i]) &&
+      !isBlockquote(lines[i]) &&
+      !isTable(lines[i]) &&
+      !detailsOpenMatch(lines[i])
+    ) {
+      i += 1;
+    }
+    const paragraphSource = collectText(lines, paragraphStart, i - 1);
+    if (/<[a-zA-Z][\s\S]*>/.test(paragraphSource)) rawHtmlWarning(warnings);
+    html.push(`<p>${renderInline(paragraphSource.replace(/\n/g, " "), warnings)}</p>`);
+  }
+  return html.join("\n");
 }
 
 function fencedCodeRanges(lines: Line[]): { start: number; end: number }[] {
@@ -271,6 +416,21 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       continue;
     }
 
+    const detailsEnd = detailsOpenMatch(line) ? findDetailsEnd(lines, i) : undefined;
+    if (detailsEnd !== undefined) {
+      const start = i;
+      const end = detailsEnd;
+      blocks.push({
+        type: "details",
+        html: renderDetailsBlock(lines, start, end, warnings),
+        range: { start: lines[start].start, end: lines[end].end },
+        lineStart: start + 1,
+        lineEnd: end + 1,
+      });
+      i = end + 1;
+      continue;
+    }
+
     if (isList(line)) {
       const start = i;
       const items: string[] = [];
@@ -312,7 +472,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
     }
     const end = i - 1;
     const paragraphSource = collectText(lines, start, end);
-    if (/<[a-zA-Z][\s\S]*>/.test(paragraphSource)) warnings.push({ kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." });
+    if (/<[a-zA-Z][\s\S]*>/.test(paragraphSource)) rawHtmlWarning(warnings);
     const path = headingStack.filter(Boolean);
     const key = `paragraph:${path.join("/")}`;
     const ordinal = ordinals.get(key) ?? 0;
