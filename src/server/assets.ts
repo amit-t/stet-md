@@ -1,10 +1,27 @@
-export const styleCss = `
-:root { color-scheme: light; --border: #d0d7de; --muted: #57606a; --accent: #0969da; --danger: #cf222e; --bg: #ffffff; --panel: #f6f8fa; }
+import { githubMarkdownCss, hljsThemeCss } from "./vendorCss.js";
+
+// Browser-grade Markdown rendering: the document pane is `.markdown-body`, styled
+// by the exact github-markdown-css + highlight.js GitHub theme the `mdv` tool uses
+// (bundled locally — the CSP forbids remote origins). Stet's own chrome (topbar,
+// threads, composer) is layered on top below.
+const stetChromeCss = `
+:root { color-scheme: light dark; --border: #d0d7de; --muted: #57606a; --accent: #0969da; --danger: #cf222e; --bg: #ffffff; --panel: #f6f8fa; --surface: #ffffff; --topbar: rgba(255,255,255,0.96); --text: #24292f; --outline: rgba(9,105,218,0.25); }
+@media (prefers-color-scheme: dark) {
+  :root { --border: #30363d; --muted: #8b949e; --accent: #2f81f7; --danger: #f85149; --bg: #0d1117; --panel: #161b22; --surface: #161b22; --topbar: rgba(13,17,23,0.96); --text: #c9d1d9; --outline: rgba(56,139,253,0.4); }
+}
 * { box-sizing: border-box; }
-body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #24292f; background: var(--bg); }
-#topbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 0.75rem; align-items: center; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.96); backdrop-filter: blur(6px); }
+body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); background: var(--bg); }
+/* The document pane is .markdown-body — github-markdown-css owns its typography. */
+#document.markdown-body { min-width: 0; background: transparent; padding: 1rem 2rem 4rem; font-size: 16px; }
+/* Match the mdv (mdview) tool's code-block treatment exactly. */
+#document.markdown-body pre code.hljs { display: block; overflow: auto; padding: 1em; border-radius: 6px; }
+#document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6, #document li { position: relative; }
+#document [data-stet-target] { cursor: crosshair; border-radius: 6px; }
+#document [data-stet-target]:hover, #document [data-stet-target]:focus { outline: 2px solid var(--outline); }
+.target-plus { position: absolute; margin-left: 0.4rem; padding: 0.1rem 0.4rem; color: var(--accent); font-weight: 700; background: var(--surface); }
+#topbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 0.75rem; align-items: center; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: var(--topbar); backdrop-filter: blur(6px); }
 #topbar strong { margin-right: auto; }
-#topbar button, .thread-card button, .composer button, .target-plus { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; }
+#topbar button, .thread-card button, .composer button, .target-plus { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; }
 #topbar button.primary, .composer button.primary { background: var(--accent); border-color: var(--accent); color: white; }
 #topbar button:disabled { opacity: 0.45; cursor: not-allowed; }
 .dirty { color: #9a6700; font-weight: 700; }
@@ -12,17 +29,8 @@ body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", 
 #banner { display: none; padding: 0.75rem 1rem; background: #fff8c5; border-bottom: 1px solid #d4a72c; color: #7d4e00; }
 #banner.visible { display: block; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.5rem; max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
-#document { min-width: 0; padding: 1rem 2rem 4rem; }
-#document h1, #document h2, #document h3 { border-bottom: 1px solid #d8dee4; padding-bottom: 0.3rem; }
-#document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6 { position: relative; }
-#document [data-stet-target] { cursor: crosshair; border-radius: 6px; }
-#document [data-stet-target]:hover, #document [data-stet-target]:focus { outline: 2px solid rgba(9,105,218,0.25); }
-.target-plus { position: absolute; margin-left: 0.4rem; padding: 0.1rem 0.4rem; color: var(--accent); font-weight: 700; }
-pre { padding: 1rem; background: #f6f8fa; border-radius: 8px; overflow: auto; }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-blockquote { border-left: 4px solid var(--border); margin-left: 0; padding-left: 1rem; color: var(--muted); }
 #threads { position: sticky; top: 4rem; align-self: start; max-height: calc(100vh - 5rem); overflow: auto; border-left: 1px solid var(--border); padding-left: 1rem; }
-.thread-card, .composer { border: 1px solid var(--border); border-radius: 10px; background: #fff; padding: 0.8rem; margin-bottom: 0.8rem; box-shadow: 0 1px 2px rgba(27,31,36,0.04); }
+.thread-card, .composer { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 0.8rem; margin-bottom: 0.8rem; box-shadow: 0 1px 2px rgba(27,31,36,0.04); }
 .thread-card.resolved { background: var(--panel); }
 .thread-card.orphan, .thread-card.drift { border-color: #d4a72c; }
 .thread-header { display: flex; gap: 0.4rem; align-items: center; justify-content: space-between; font-weight: 700; }
@@ -30,11 +38,13 @@ blockquote { border-left: 4px solid var(--border); margin-left: 0; padding-left:
 .quote { color: var(--muted); font-size: 0.85rem; margin: 0.25rem 0 0.5rem; }
 .message { border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.5rem; white-space: pre-wrap; }
 .message-meta { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.25rem; }
-textarea { width: 100%; min-height: 5rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; font: inherit; resize: vertical; }
+textarea { width: 100%; min-height: 5rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; font: inherit; color: var(--text); background: var(--surface); resize: vertical; }
 .blocked-resource { color: var(--danger); font-weight: 700; }
 .warning-list { color: #7d4e00; font-size: 0.85rem; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } #threads { position: static; max-height: none; border-left: 0; padding-left: 0; } }
 `;
+
+export const styleCss = `${githubMarkdownCss}\n${hljsThemeCss}\n${stetChromeCss}`;
 
 export function shellHtml(): string {
   return `<!doctype html>
@@ -50,7 +60,7 @@ export function shellHtml(): string {
     <header id="topbar">Loading Stet.md…</header>
     <div id="banner"></div>
     <div class="layout">
-      <article id="document" aria-label="Markdown document"></article>
+      <article id="document" class="markdown-body" aria-label="Markdown document"></article>
       <aside id="threads" aria-label="Review threads"></aside>
     </div>
   </div>

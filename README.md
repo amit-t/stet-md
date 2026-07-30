@@ -93,7 +93,8 @@ The server binds to `127.0.0.1`, sets an HttpOnly `SameSite=Strict` cookie, and 
 The UI includes:
 
 - top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview;
-- rendered Markdown body with commentable headings and paragraphs plus safe `<details>/<summary>` collapsibles;
+- a browser-grade GitHub-flavored Markdown body — the same look as the `mdv`/`mdview` tool and github.com — rendered with the bundled [`github-markdown-css`](https://github.com/sindresorhus/github-markdown-css) + [`highlight.js`](https://highlightjs.org/) GitHub theme (vendored locally; nothing is fetched from a CDN, and dark mode follows the OS). Headings, paragraphs, emphasis, strikethrough, links/autolinks, GFM tables, ordered/nested/task lists, thematic rules, slugged heading anchors, syntax-highlighted fenced code, and safe `<details>/<summary>` collapsibles all render natively;
+- commentable headings and paragraphs;
 - `+` affordances, double-click comments, keyboard `c` on focused blocks, and document-level comments;
 - side-panel thread cards with replies, resolve/reopen controls, orphan and content-drift warnings;
 - localStorage draft recovery keyed by file path and loaded file hash;

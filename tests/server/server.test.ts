@@ -54,8 +54,9 @@ describe("local review server", () => {
     const richFileServer = await start(tempMarkdown("# Rich\n\nParagraph.\n\n- one\n- two\n\n> quoted\n\n```ts\nconst x = 1;\n```\n"));
     const rich = await (await fetchWithCookie(richFileServer, "/api/document")).json();
     expect(rich.html).toContain("<ul>");
-    expect(rich.html).toContain("<blockquote>");
-    expect(rich.html).toContain("<pre><code>");
+    expect(rich.html).toContain("<blockquote><p>quoted</p></blockquote>");
+    expect(rich.html).toContain('<pre><code class="hljs language-ts">');
+    expect(rich.html).toContain('<span class="hljs-keyword">const</span>');
 
     const paragraph = doc.targets.find((target: { kind: string }) => target.kind === "paragraph");
     const stage = await fetchWithCookie(server, "/api/comments", {

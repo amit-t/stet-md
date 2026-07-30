@@ -57,11 +57,13 @@
     "test:browser": "vitest run tests/browser",
     "test:packaging": "pnpm run build && vitest run tests/packaging",
     "ci": "pnpm run typecheck && pnpm test && pnpm run test:packaging",
+    "vendor:css": "node scripts/vendor-css.mjs",
     "pack:dry": "pnpm pack --dry-run",
     "prepack": "pnpm run build",
     "prepublishOnly": "pnpm run ci"
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
     "js-yaml": "^4.2.0",
     "remark-parse": "^11.0.0",
     "unified": "^11.0.5"

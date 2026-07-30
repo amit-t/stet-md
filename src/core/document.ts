@@ -3,6 +3,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFil
 import type { RenderedBlock, ReviewDocument, ReviewParseError, ReviewTarget, ReviewThread, ReviewWarning, RawThreadBlock, SaveOptions } from "./types.js";
 import { createThreadId, hashBuffer, sourceHash } from "./hash.js";
 import { escapeHtml, stripMarkdownInline } from "./escape.js";
+import { isHorizontalRule, normalizeLinkLabel, renderCodeBlock, renderInline, renderList, renderTable, slugify, type LinkDefinitions } from "./render.js";
 import { parseMarkerBody, renderThreadBlock } from "./threadFormat.js";
 import { isoNow } from "./time.js";
 import { StetConflictError, StetNotFoundError, StetParseError } from "./errors.js";
@@ -155,6 +156,22 @@ function isTable(line: Line): boolean {
   return /^\s*\|.*\|\s*$/.test(lineText(line));
 }
 
+/** Parse a link reference definition line: `[label]: url "title"`. */
+function linkDefinitionMatch(text: string): { label: string; href: string } | null {
+  const match = text.match(/^\s{0,3}\[([^\]]+)\]:\s+(.+)$/);
+  if (!match) return null;
+  const rest = match[2].trim();
+  let href: string;
+  if (rest.startsWith("<")) {
+    const close = rest.indexOf(">");
+    if (close === -1) return null;
+    href = rest.slice(1, close);
+  } else {
+    href = rest.split(/\s+/)[0] ?? "";
+  }
+  return href ? { label: match[1], href } : null;
+}
+
 function detailsOpenMatch(line: Line): RegExpMatchArray | null {
   return lineText(line).trim().match(/^<details(?:\s+(open))?\s*>$/i);
 }
@@ -201,55 +218,62 @@ function makeTarget(kind: "heading" | "paragraph", headingPath: string[], blockO
   };
 }
 
-function renderInline(text: string, warnings: ReviewWarning[]): string {
-  let safe = escapeHtml(text);
-  safe = safe.replace(/!\[([^\]]*)\]\((?:https?:)?\/\/[^)]+\)/g, (_all, alt: string) => {
-    warnings.push({ kind: "remote_resource_blocked", message: "Remote Markdown image was blocked by default." });
-    return `<span class="blocked-resource" data-stet-blocked-resource="image">remote image blocked: ${escapeHtml(alt)}</span>`;
-  });
-  safe = safe.replace(/`([^`]+)`/g, "<code>$1</code>");
-  safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_all, label: string, href: string) => {
-    if (/^(?:https?:|mailto:)/i.test(href)) return `<a href="${escapeHtml(href)}" rel="noreferrer noopener">${label}</a>`;
-    return label;
-  });
-  return safe;
-}
-
 function rawHtmlWarning(warnings: ReviewWarning[]): void {
   warnings.push({ kind: "unsafe_html_escaped", message: "Raw Markdown HTML was escaped." });
 }
 
-function containsUnsafeInlineHtml(text: string): boolean {
-  const withoutAllowedTags = text.replace(/<\/?(?:strong|em|code|kbd|s|sup|sub)\s*>/gi, "").replace(/<br\s*\/?>/gi, "");
-  return /<[a-zA-Z][\s\S]*>/.test(withoutAllowedTags);
+/** Render blockquote inner lines as paragraphs, matching browser output. */
+function renderBlockquoteBody(parts: string[], warnings: ReviewWarning[], defs: LinkDefinitions): string {
+  const paragraphs: string[] = [];
+  let buffer: string[] = [];
+  const flush = (): void => {
+    if (buffer.length === 0) return;
+    paragraphs.push(`<p>${renderInline(buffer.join(" "), warnings, defs)}</p>`);
+    buffer = [];
+  };
+  for (const part of parts) {
+    if (part.trim() === "") flush();
+    else buffer.push(part);
+  }
+  flush();
+  return paragraphs.join("");
 }
 
-function renderInlineWithSafeHtml(text: string, warnings: ReviewWarning[]): string {
+// An actual HTML tag — not a Markdown autolink like <https://example.com> or a
+// bare comparison such as `a < b`.
+const RAW_HTML_TAG = /<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?\/?>/;
+
+function containsUnsafeInlineHtml(text: string): boolean {
+  const withoutAllowedTags = text.replace(/<\/?(?:strong|em|code|kbd|s|sup|sub)\s*>/gi, "").replace(/<br\s*\/?>/gi, "");
+  return RAW_HTML_TAG.test(withoutAllowedTags);
+}
+
+function renderInlineWithSafeHtml(text: string, warnings: ReviewWarning[], defs: LinkDefinitions): string {
   if (containsUnsafeInlineHtml(text)) rawHtmlWarning(warnings);
-  return renderInline(text, warnings)
+  return renderInline(text, warnings, defs)
     .replace(/&lt;(\/?(?:strong|em|code|kbd|s|sup|sub))&gt;/gi, "<$1>")
     .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
 }
 
-function renderDetailsBlock(lines: Line[], start: number, end: number, warnings: ReviewWarning[]): string {
+function renderDetailsBlock(lines: Line[], start: number, end: number, warnings: ReviewWarning[], defs: LinkDefinitions): string {
   const open = detailsOpenMatch(lines[start])?.[1] ? " open" : "";
   let index = start + 1;
   while (index < end && isBlank(lines[index])) index += 1;
 
   const summary = index < end ? summaryMatch(lines[index]) : null;
-  const summaryHtml = summary ? `<summary>${renderInlineWithSafeHtml(summary[1], warnings)}</summary>` : "";
+  const summaryHtml = summary ? `<summary>${renderInlineWithSafeHtml(summary[1], warnings, defs)}</summary>` : "";
   if (summary) index += 1;
 
-  const inner = renderMarkdownFragment(lines, index, end - 1, warnings);
+  const inner = renderMarkdownFragment(lines, index, end - 1, warnings, defs);
   return [`<details${open}>`, summaryHtml, inner, "</details>"].filter(Boolean).join("\n");
 }
 
-function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: number, warnings: ReviewWarning[]): string {
+function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: number, warnings: ReviewWarning[], defs: LinkDefinitions): string {
   const html: string[] = [];
   let i = startIndex;
   while (i <= endIndex) {
     const line = lines[i];
-    if (isBlank(line)) {
+    if (isBlank(line) || linkDefinitionMatch(lineText(line))) {
       i += 1;
       continue;
     }
@@ -257,12 +281,12 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
     if (detailsOpenMatch(line)) {
       const nestedDetailsEnd = findDetailsEnd(lines, i);
       if (nestedDetailsEnd !== undefined && nestedDetailsEnd <= endIndex) {
-        html.push(renderDetailsBlock(lines, i, nestedDetailsEnd, warnings));
+        html.push(renderDetailsBlock(lines, i, nestedDetailsEnd, warnings, defs));
         i = nestedDetailsEnd + 1;
         continue;
       }
       rawHtmlWarning(warnings);
-      html.push(`<p>${renderInline(lineText(line), warnings)}</p>`);
+      html.push(`<p>${renderInline(lineText(line), warnings, defs)}</p>`);
       i += 1;
       continue;
     }
@@ -270,7 +294,8 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
     const heading = headingMatch(line);
     if (heading) {
       const level = heading[1].length;
-      html.push(`<h${level}>${renderInline(stripMarkdownInline(heading[2]), warnings)}</h${level}>`);
+      const title = stripMarkdownInline(heading[2]);
+      html.push(`<h${level} id="${slugify(title)}">${renderInline(title, warnings, defs)}</h${level}>`);
       i += 1;
       continue;
     }
@@ -278,23 +303,23 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
     const fence = isFence(line);
     if (fence) {
       const codeStart = i;
+      const lang = lineText(line).slice(fence[0].length).trim();
       i += 1;
       while (i <= endIndex && !lineText(lines[i]).startsWith(fence[1])) i += 1;
       const codeEnd = Math.min(i, endIndex);
       const codeLines = lines.slice(codeStart + 1, Math.max(codeStart + 1, codeEnd)).map((candidate) => candidate.content).join("\n");
-      html.push(`<pre><code>${escapeHtml(codeLines)}</code></pre>`);
+      html.push(renderCodeBlock(codeLines, lang));
       i = codeEnd + 1;
       continue;
     }
 
     if (isList(line)) {
-      const items: string[] = [];
+      const rawLines: string[] = [];
       while (i <= endIndex && (isList(lines[i]) || (lineText(lines[i]).startsWith("  ") && !isBlank(lines[i]) && !detailsOpenMatch(lines[i])))) {
-        const item = lineText(lines[i]).replace(/^\s{0,3}(?:[-+*]|\d+[.)])\s+/, "");
-        if (item.trim()) items.push(`<li>${renderInline(item, warnings)}</li>`);
+        rawLines.push(lineText(lines[i]));
         i += 1;
       }
-      html.push(`<ul>${items.join("")}</ul>`);
+      html.push(renderList(rawLines, warnings, defs));
       continue;
     }
 
@@ -304,15 +329,21 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
         parts.push(lineText(lines[i]).replace(/^\s{0,3}>\s?/, ""));
         i += 1;
       }
-      html.push(`<blockquote>${renderInline(parts.join("\n"), warnings)}</blockquote>`);
+      html.push(`<blockquote>${renderBlockquoteBody(parts, warnings, defs)}</blockquote>`);
       continue;
     }
 
     if (isTable(line)) {
       const tableStart = i;
       while (i <= endIndex && isTable(lines[i])) i += 1;
-      const tableText = escapeHtml(lines.slice(tableStart, i).map((candidate) => lineText(candidate)).join("\n"));
-      html.push(`<pre><code>${tableText}</code></pre>`);
+      const tableLines = lines.slice(tableStart, i).map((candidate) => lineText(candidate));
+      html.push(renderTable(tableLines, warnings, defs));
+      continue;
+    }
+
+    if (isHorizontalRule(lineText(line))) {
+      html.push("<hr>");
+      i += 1;
       continue;
     }
 
@@ -325,13 +356,15 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
       !isList(lines[i]) &&
       !isBlockquote(lines[i]) &&
       !isTable(lines[i]) &&
+      !isHorizontalRule(lineText(lines[i])) &&
+      !linkDefinitionMatch(lineText(lines[i])) &&
       !detailsOpenMatch(lines[i])
     ) {
       i += 1;
     }
     const paragraphSource = collectText(lines, paragraphStart, i - 1);
-    if (/<[a-zA-Z][\s\S]*>/.test(paragraphSource)) rawHtmlWarning(warnings);
-    html.push(`<p>${renderInline(paragraphSource.replace(/\n/g, " "), warnings)}</p>`);
+    if (RAW_HTML_TAG.test(paragraphSource)) rawHtmlWarning(warnings);
+    html.push(`<p>${renderInline(paragraphSource.replace(/\n/g, " "), warnings, defs)}</p>`);
   }
   return html.join("\n");
 }
@@ -371,11 +404,27 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
   const warnings: ReviewWarning[] = [];
   const headingStack: string[] = [];
   const ordinals = new Map<string, number>();
+
+  // Collect link reference definitions (outside code/thread blocks) so reference
+  // links resolve and the definition lines themselves are hidden, as in a browser.
+  const linkDefs: LinkDefinitions = new Map();
+  const defLines = new Set<number>();
+  const codeRanges = fencedCodeRanges(lines);
+  for (let k = 0; k < lines.length; k += 1) {
+    const candidate = lines[k];
+    if (isRangeStartInside(threadRanges, candidate) || isRangeStartInside(codeRanges, candidate)) continue;
+    const def = linkDefinitionMatch(lineText(candidate));
+    if (def) {
+      linkDefs.set(normalizeLinkLabel(def.label), { href: escapeHtml(def.href) });
+      defLines.add(k);
+    }
+  }
+
   let globalOrdinal = 0;
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-    if (isRangeStartInside(threadRanges, line) || isBlank(line)) {
+    if (isRangeStartInside(threadRanges, line) || isBlank(line) || defLines.has(i)) {
       i += 1;
       continue;
     }
@@ -394,7 +443,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       targets.push(target);
       blocks.push({
         type: "heading",
-        html: `<h${level} data-stet-target="${target.id}" tabindex="0">${renderInline(title, warnings)}</h${level}>`,
+        html: `<h${level} id="${slugify(title)}" data-stet-target="${target.id}" tabindex="0">${renderInline(title, warnings, linkDefs)}</h${level}>`,
         range: target.byteRange!,
         lineStart: target.lineStart!,
         lineEnd: target.lineEnd!,
@@ -407,12 +456,13 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
     const fence = isFence(line);
     if (fence) {
       const start = i;
+      const lang = lineText(line).slice(fence[0].length).trim();
       i += 1;
       while (i < lines.length && !lineText(lines[i]).startsWith(fence[1])) i += 1;
       if (i < lines.length) i += 1;
       const end = i - 1;
       const codeLines = lines.slice(start + 1, Math.max(start + 1, end)).map((candidate) => candidate.content).join("\n");
-      blocks.push({ type: "code", html: `<pre><code>${escapeHtml(codeLines)}</code></pre>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      blocks.push({ type: "code", html: renderCodeBlock(codeLines, lang), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
       continue;
     }
 
@@ -422,7 +472,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       const end = detailsEnd;
       blocks.push({
         type: "details",
-        html: renderDetailsBlock(lines, start, end, warnings),
+        html: renderDetailsBlock(lines, start, end, warnings, linkDefs),
         range: { start: lines[start].start, end: lines[end].end },
         lineStart: start + 1,
         lineEnd: end + 1,
@@ -433,15 +483,14 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
 
     if (isList(line)) {
       const start = i;
-      const items: string[] = [];
+      const rawLines: string[] = [];
       while (i < lines.length && (isList(lines[i]) || (lineText(lines[i]).startsWith("  ") && !isBlank(lines[i])))) {
         if (isRangeStartInside(threadRanges, lines[i])) break;
-        const item = lineText(lines[i]).replace(/^\s{0,3}(?:[-+*]|\d+[.)])\s+/, "");
-        if (item.trim()) items.push(`<li>${renderInline(item, warnings)}</li>`);
+        rawLines.push(lineText(lines[i]));
         i += 1;
       }
       const end = i - 1;
-      blocks.push({ type: "list", html: `<ul>${items.join("")}</ul>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      blocks.push({ type: "list", html: renderList(rawLines, warnings, linkDefs), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
       continue;
     }
 
@@ -453,7 +502,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
         i += 1;
       }
       const end = i - 1;
-      blocks.push({ type: "blockquote", html: `<blockquote>${renderInline(parts.join("\n"), warnings)}</blockquote>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      blocks.push({ type: "blockquote", html: `<blockquote>${renderBlockquoteBody(parts, warnings, linkDefs)}</blockquote>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
       continue;
     }
 
@@ -461,18 +510,24 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       const start = i;
       while (i < lines.length && isTable(lines[i])) i += 1;
       const end = i - 1;
-      const tableText = escapeHtml(lines.slice(start, end + 1).map((candidate) => lineText(candidate)).join("\n"));
-      blocks.push({ type: "code", html: `<pre><code>${tableText}</code></pre>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      const tableLines = lines.slice(start, end + 1).map((candidate) => lineText(candidate));
+      blocks.push({ type: "code", html: renderTable(tableLines, warnings, linkDefs), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      continue;
+    }
+
+    if (isHorizontalRule(lineText(line))) {
+      blocks.push({ type: "code", html: "<hr>", range: { start: line.start, end: line.end }, lineStart: i + 1, lineEnd: i + 1 });
+      i += 1;
       continue;
     }
 
     const start = i;
-    while (i < lines.length && !isBlank(lines[i]) && !headingMatch(lines[i]) && !isFence(lines[i]) && !isList(lines[i]) && !isBlockquote(lines[i]) && !isTable(lines[i]) && !isRangeStartInside(threadRanges, lines[i])) {
+    while (i < lines.length && !isBlank(lines[i]) && !headingMatch(lines[i]) && !isFence(lines[i]) && !isList(lines[i]) && !isBlockquote(lines[i]) && !isTable(lines[i]) && !isHorizontalRule(lineText(lines[i])) && !defLines.has(i) && !isRangeStartInside(threadRanges, lines[i])) {
       i += 1;
     }
     const end = i - 1;
     const paragraphSource = collectText(lines, start, end);
-    if (/<[a-zA-Z][\s\S]*>/.test(paragraphSource)) rawHtmlWarning(warnings);
+    if (RAW_HTML_TAG.test(paragraphSource)) rawHtmlWarning(warnings);
     const path = headingStack.filter(Boolean);
     const key = `paragraph:${path.join("/")}`;
     const ordinal = ordinals.get(key) ?? 0;
@@ -482,7 +537,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
     targets.push(target);
     blocks.push({
       type: "paragraph",
-      html: `<p data-stet-target="${target.id}" tabindex="0">${renderInline(paragraphSource.replace(/\n/g, " "), warnings)}</p>`,
+      html: `<p data-stet-target="${target.id}" tabindex="0">${renderInline(paragraphSource.replace(/\n/g, " "), warnings, linkDefs)}</p>`,
       range: target.byteRange!,
       lineStart: target.lineStart!,
       lineEnd: target.lineEnd!,
