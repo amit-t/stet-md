@@ -189,4 +189,29 @@ describe("browser UI smoke", () => {
 
     expect(window.document.querySelector("#banner")!.textContent).toBe("Raw Markdown HTML was escaped. (3 occurrences)");
   });
+
+  test("quick-comment works on wrapped blocks inside details", async () => {
+    const window = createWindow();
+    const payload = {
+      ...documentPayload,
+      html: `<details open><summary>Q3</summary><div class="stet-block" data-stet-target="t3" tabindex="0"><ul><li>option A</li><li>option B</li></ul></div></details>`,
+      targets: [
+        { id: "doc", kind: "document", quote: "Document" },
+        { id: "t3", kind: "list", quote: "option A option B" },
+      ],
+    };
+    const fetchMock = vi.fn(async () => Response.json(payload));
+    const app = createStetApp({ window: window as unknown as Window & typeof globalThis, fetch: fetchMock as unknown as typeof fetch });
+    await app.start();
+
+    const wrapper = window.document.querySelector<HTMLElement>(".stet-block[data-stet-target='t3']")!;
+    const button = wrapper.querySelector<HTMLButtonElement>(":scope > button[data-action='quick-comment']");
+    expect(button).not.toBeNull();
+    expect(wrapper.querySelector("ul button")).toBeNull();
+
+    button!.click();
+    const composer = window.document.querySelector<HTMLElement>("#threads .composer");
+    expect(composer).not.toBeNull();
+    expect(composer!.textContent).toContain("option A");
+  });
 });

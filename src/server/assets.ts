@@ -32,10 +32,11 @@ body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", 
 #document .stet-frontmatter > table td:last-child { color: var(--text); }
 #document .stet-frontmatter > pre { margin: 0; }
 #document.markdown-body .stet-frontmatter > pre code.hljs { padding: 0.55rem 0.7rem; background: transparent; font-size: 0.8rem; }
-#document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6, #document li { position: relative; }
+#document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6, #document li, #document .stet-block { position: relative; }
 #document [data-stet-target] { cursor: crosshair; border-radius: 6px; }
 #document [data-stet-target]:hover, #document [data-stet-target]:focus { outline: 2px solid var(--outline); }
 .target-plus { position: absolute; margin-left: 0.4rem; padding: 0.1rem 0.4rem; color: var(--accent); font-weight: 700; background: var(--surface); }
+.stet-block > .target-plus { top: 0.15rem; right: 0.3rem; margin-left: 0; }
 #topbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 0.75rem; align-items: center; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: var(--topbar); backdrop-filter: blur(6px); }
 #topbar strong { margin-right: auto; }
 .build-identity { margin-left: 0.35rem; color: var(--muted); font-size: 0.72rem; font-weight: 400; white-space: nowrap; }
