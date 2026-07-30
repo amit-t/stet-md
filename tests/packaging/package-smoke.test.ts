@@ -32,7 +32,12 @@ describe("package metadata and CLI smoke", () => {
   test("built CLI exposes help, version, and agent protocol", () => {
     expect(existsSync("dist/cli/main.js")).toBe(true);
     const version = execFileSync("node", ["dist/cli/main.js", "--version"], { encoding: "utf8" }).trim();
-    expect(version).toBe(packageJson.version);
+    const escapedVersion = packageJson.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const versionMatch = version.match(new RegExp(
+      `^stet-md ${escapedVersion} \\(built (\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z), commit ([0-9a-f]{40})\\)$`,
+    ));
+    expect(versionMatch).not.toBeNull();
+    expect(new Date(versionMatch![1]).toISOString()).toBe(versionMatch![1]);
 
     const help = execFileSync("node", ["dist/cli/main.js", "--help"], { encoding: "utf8" });
     expect(help).toContain("Stet.md");

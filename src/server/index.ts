@@ -16,6 +16,7 @@ import {
 import { acquireLock, releaseLock, type LockStatus } from "./locks.js";
 import { authCookie, hasValidToken, isAllowedHost, setSecurityHeaders } from "./security.js";
 import { shellHtml, styleCss } from "./assets.js";
+import { readBuildInfo, type BuildInfo } from "./buildInfo.js";
 import { readFileSync as readFs } from "node:fs";
 
 export type ReviewServerOptions = {
@@ -41,6 +42,7 @@ type SessionState = {
   loadedHash: string;
   staged: Map<string, ReviewThread>;
   lockStatus: LockStatus;
+  buildInfo: BuildInfo;
 };
 
 function jsonResponse(response: ServerResponse, status: number, body: unknown): void {
@@ -70,7 +72,7 @@ function currentChangedOnDisk(state: SessionState): boolean {
   return hashBuffer(readFileSync(state.filePath)) !== state.loadedHash;
 }
 
-function documentPayload(state: SessionState): ReviewDocument & { dirty: boolean; conflict: { changedOnDisk: boolean; message?: string }; lock: LockStatus } {
+function documentPayload(state: SessionState): ReviewDocument & { dirty: boolean; conflict: { changedOnDisk: boolean; message?: string }; lock: LockStatus; buildInfo: BuildInfo } {
   const doc = loadReviewDocument(state.filePath, { allowMalformed: true });
   const stagedIds = new Set(state.staged.keys());
   const mergedThreads = [...doc.threads.filter((thread) => !stagedIds.has(thread.id)), ...state.staged.values()];
@@ -81,6 +83,7 @@ function documentPayload(state: SessionState): ReviewDocument & { dirty: boolean
     dirty: state.staged.size > 0,
     conflict: changed ? { changedOnDisk: true, message: "File changed on disk. Reload before saving or save to copy." } : { changedOnDisk: false },
     lock: state.lockStatus,
+    buildInfo: state.buildInfo,
   };
 }
 
@@ -167,6 +170,7 @@ export async function createReviewServer(options: ReviewServerOptions): Promise<
     loadedHash: initial.fileHash,
     staged: new Map(),
     lockStatus: acquireLock(filePath, initial.fileHash),
+    buildInfo: readBuildInfo(),
   };
   let port = 0;
 

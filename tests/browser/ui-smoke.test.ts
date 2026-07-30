@@ -28,9 +28,73 @@ const documentPayload = {
   conflict: { changedOnDisk: false },
   warnings: [],
   errors: [],
+  buildInfo: {
+    version: "0.1.0",
+    builtAt: "2026-07-30T03:30:00.000Z",
+    commit: "f351930abcdef1234567890",
+  },
 };
 
 describe("browser UI smoke", () => {
+  test("header shows build version, timestamp, and commit", async () => {
+    const window = createWindow();
+    const fetchMock = vi.fn(async () => Response.json(documentPayload));
+    const app = createStetApp({ window: window as unknown as Window & typeof globalThis, fetch: fetchMock as unknown as typeof fetch });
+    await app.start();
+
+    const identity = window.document.querySelector<HTMLElement>("#topbar .build-identity")!;
+    expect(identity.textContent).toContain("v0.1.0");
+    expect(identity.textContent).toContain("2026-07-30T03:30:00.000Z");
+    expect(identity.textContent).toContain("f351930");
+  });
+
+  test("opening or typing in a comment composer keeps the document saved until staging", async () => {
+    const window = createWindow();
+    const fetchMock = vi.fn(async () => Response.json(documentPayload));
+    const app = createStetApp({ window: window as unknown as Window & typeof globalThis, fetch: fetchMock as unknown as typeof fetch });
+    await app.start();
+
+    window.document.querySelector<HTMLButtonElement>("p[data-stet-target='t2'] button[data-action='quick-comment']")!.click();
+
+    expect(window.document.querySelector("#threads textarea[data-composer='comment']")).not.toBeNull();
+    expect(window.document.querySelector("#topbar")!.textContent).toContain("Saved");
+    expect(window.document.querySelector("#topbar")!.textContent).not.toContain("Dirty");
+
+    const textarea = window.document.querySelector<HTMLTextAreaElement>("textarea[data-composer='comment']")!;
+    textarea.value = "Draft, not staged";
+    textarea.dispatchEvent(new window.Event("input", { bubbles: true }));
+
+    expect(window.document.querySelector("#topbar")!.textContent).toContain("Saved");
+    expect(window.document.querySelector("#topbar")!.textContent).not.toContain("Dirty");
+  });
+
+  test("toolbar expands and collapses every details block", async () => {
+    const window = createWindow();
+    const detailsPayload = {
+      ...documentPayload,
+      html: `
+        <details><summary>First</summary><p>First body</p></details>
+        <details open><summary>Second</summary><p>Second body</p></details>
+        <details><summary>Third</summary><p>Third body</p></details>
+      `,
+    };
+    const fetchMock = vi.fn(async () => Response.json(detailsPayload));
+    const app = createStetApp({ window: window as unknown as Window & typeof globalThis, fetch: fetchMock as unknown as typeof fetch });
+    await app.start();
+
+    const details = [...window.document.querySelectorAll<HTMLDetailsElement>("#document details")];
+    const expand = window.document.querySelector<HTMLButtonElement>("button[data-action='toggle-details']")!;
+    expect(expand.textContent).toBe("Expand all");
+
+    expand.click();
+    expect(details.every((item) => item.open)).toBe(true);
+
+    const collapse = window.document.querySelector<HTMLButtonElement>("button[data-action='toggle-details']")!;
+    expect(collapse.textContent).toBe("Collapse all");
+    collapse.click();
+    expect(details.every((item) => !item.open)).toBe(true);
+  });
+
   test("double-click paragraph stages comment and save refreshes clean state", async () => {
     const window = createWindow();
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {

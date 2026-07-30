@@ -15,12 +15,30 @@ body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", 
 #document.markdown-body { min-width: 0; background: transparent; padding: 1rem 2rem 4rem; font-size: 16px; }
 /* Match the mdv (mdview) tool's code-block treatment exactly. */
 #document.markdown-body pre code.hljs { display: block; overflow: auto; padding: 1em; border-radius: 6px; }
+/* Frontmatter is metadata, not prose: muted, compact, and visibly not a body
+   <details> collapsible. It is never a comment target, so it gets no hover affordance. */
+#document .stet-frontmatter { margin: 0 0 1.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--muted); font-size: 0.85rem; }
+#document .stet-frontmatter > summary { padding: 0.4rem 0.7rem; color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; list-style: none; }
+#document .stet-frontmatter > summary::-webkit-details-marker { display: none; }
+#document .stet-frontmatter > summary::before { content: "\\25B8"; display: inline-block; width: 1em; }
+#document .stet-frontmatter[open] > summary { border-bottom: 1px solid var(--border); }
+#document .stet-frontmatter[open] > summary::before { content: "\\25BE"; }
+#document .stet-frontmatter > table { display: table; width: 100%; margin: 0; border: 0; font-size: 0.85rem; }
+#document .stet-frontmatter > table tr { background: transparent; border-top: 0; }
+#document .stet-frontmatter > table th, #document .stet-frontmatter > table td { border: 0; border-bottom: 1px solid var(--border); padding: 0.3rem 0.7rem; text-align: left; vertical-align: top; }
+#document .stet-frontmatter > table th { color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+#document .stet-frontmatter > table tbody tr:last-child td { border-bottom: 0; }
+#document .stet-frontmatter > table td:first-child { width: 1%; white-space: nowrap; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+#document .stet-frontmatter > table td:last-child { color: var(--text); }
+#document .stet-frontmatter > pre { margin: 0; }
+#document.markdown-body .stet-frontmatter > pre code.hljs { padding: 0.55rem 0.7rem; background: transparent; font-size: 0.8rem; }
 #document p, #document h1, #document h2, #document h3, #document h4, #document h5, #document h6, #document li { position: relative; }
 #document [data-stet-target] { cursor: crosshair; border-radius: 6px; }
 #document [data-stet-target]:hover, #document [data-stet-target]:focus { outline: 2px solid var(--outline); }
 .target-plus { position: absolute; margin-left: 0.4rem; padding: 0.1rem 0.4rem; color: var(--accent); font-weight: 700; background: var(--surface); }
 #topbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 0.75rem; align-items: center; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: var(--topbar); backdrop-filter: blur(6px); }
 #topbar strong { margin-right: auto; }
+.build-identity { margin-left: 0.35rem; color: var(--muted); font-size: 0.72rem; font-weight: 400; white-space: nowrap; }
 #topbar button, .thread-card button, .composer button, .target-plus { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; }
 #topbar button.primary, .composer button.primary { background: var(--accent); border-color: var(--accent); color: white; }
 #topbar button:disabled { opacity: 0.45; cursor: not-allowed; }

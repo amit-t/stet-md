@@ -69,6 +69,7 @@ On reopen:
 
 - Browser opens for `stet-md prd.md`.
 - Document renders headings, paragraphs, lists, blockquotes, and code blocks.
+- Leading YAML frontmatter renders as a collapsed, fully escaped **Frontmatter** block, never as body prose, and is not a comment target. Detection requires `---` on line 1 plus a later closing `---`; anything else stays a thematic rule.
 - Double-click heading/paragraph opens composer.
 - Saving writes `stet:thread` block.
 - Reopen restores thread beside target.

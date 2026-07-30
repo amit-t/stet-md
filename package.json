@@ -48,7 +48,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/write-build-info.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run tests/core tests/cli tests/safety tests/server tests/security tests/browser",
     "test:core": "vitest run tests/core",

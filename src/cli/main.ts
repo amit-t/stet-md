@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import {
   appendReply,
   createCommentBySelector,
@@ -11,13 +9,8 @@ import {
   type ReviewThread,
 } from "../core/index.js";
 import { createReviewServer } from "../server/index.js";
+import { formatBuildIdentity, readBuildInfo } from "../server/buildInfo.js";
 import { agentProtocol } from "./protocol.js";
-
-function packageVersion(): string {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const packageJson = JSON.parse(readFileSync(resolve(here, "../../package.json"), "utf8"));
-  return packageJson.version;
-}
 
 function help(): string {
   return `Stet.md — local Markdown review comments
@@ -133,7 +126,7 @@ async function main(argv = process.argv.slice(2)): Promise<void> {
     return;
   }
   if (args.flags.has("version")) {
-    console.log(packageVersion());
+    console.log(formatBuildIdentity(readBuildInfo()));
     return;
   }
   if (args.flags.has("print-agent-protocol")) {

@@ -26,6 +26,12 @@ type UiWarning = {
   threadId?: string;
 };
 
+type UiBuildInfo = {
+  version: string;
+  builtAt: string;
+  commit: string;
+};
+
 type UiDocument = {
   filePath: string;
   fileName: string;
@@ -37,6 +43,7 @@ type UiDocument = {
   conflict: { changedOnDisk: boolean; message?: string };
   warnings: UiWarning[];
   errors: { message: string; lineStart?: number; lineEnd?: number }[];
+  buildInfo?: UiBuildInfo;
 };
 
 export type StetApp = {
@@ -113,11 +120,19 @@ export function createStetApp(options: AppOptions): StetApp {
   function renderTopbar(): void {
     if (!state) return;
     const openCount = state.threads.filter((thread) => thread.status === "open").length;
-    const dirty = state.dirty || hasOpenDraft();
+    const dirty = state.dirty;
+    const details = Array.from(documentRoot.querySelectorAll<HTMLDetailsElement>("details"));
+    const detailsControl = details.length > 0
+      ? `<button data-action="toggle-details">${details.every((item) => item.open) ? "Collapse all" : "Expand all"}</button>`
+      : "";
+    const buildIdentity = state.buildInfo
+      ? `<span class="build-identity">v${escapeHtml(state.buildInfo.version)} · built ${escapeHtml(state.buildInfo.builtAt)} · ${escapeHtml(state.buildInfo.commit.slice(0, 12))}</span>`
+      : "";
     topbar.innerHTML = `
-      <strong>${escapeHtml(state.fileName)}</strong>
+      <strong>${escapeHtml(state.fileName)} ${buildIdentity}</strong>
       <span class="${dirty ? "dirty" : "clean"}">${dirty ? "Dirty" : "Saved"}</span>
       <span>${openCount} open</span>
+      ${detailsControl}
       <button data-action="document-comment">Comment on document</button>
       <button data-action="save" class="primary" ${state.conflict.changedOnDisk ? "disabled" : ""}>Save</button>
       <button data-action="reload">Reload</button>
@@ -212,9 +227,9 @@ export function createStetApp(options: AppOptions): StetApp {
   }
 
   function renderAll(): void {
+    renderDocument();
     renderTopbar();
     renderBanner();
-    renderDocument();
     renderThreads();
   }
 
@@ -296,8 +311,16 @@ export function createStetApp(options: AppOptions): StetApp {
     }
   });
 
+  documentRoot.addEventListener("toggle", () => renderTopbar(), true);
+
   topbar.addEventListener("click", (event) => {
     const action = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-action]")?.dataset.action;
+    if (action === "toggle-details") {
+      const details = Array.from(documentRoot.querySelectorAll<HTMLDetailsElement>("details"));
+      const shouldOpen = details.some((item) => !item.open);
+      for (const item of details) item.open = shouldOpen;
+      renderTopbar();
+    }
     if (action === "document-comment") openComposer("document");
     if (action === "save") track(save());
     if (action === "reload") track(load());

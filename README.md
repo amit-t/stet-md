@@ -94,6 +94,7 @@ The UI includes:
 
 - top bar with file name, dirty/saved state, open-thread count, Save, Reload, and patch preview;
 - a browser-grade GitHub-flavored Markdown body — the same look as the `mdv`/`mdview` tool and github.com — rendered with the bundled [`github-markdown-css`](https://github.com/sindresorhus/github-markdown-css) + [`highlight.js`](https://highlightjs.org/) GitHub theme (vendored locally; nothing is fetched from a CDN, and dark mode follows the OS). Headings, paragraphs, emphasis, strikethrough, links/autolinks, GFM tables, ordered/nested/task lists, thematic rules, slugged heading anchors, syntax-highlighted fenced code, and safe `<details>/<summary>` collapsibles all render natively;
+- leading YAML frontmatter (a `---` line at the top of the file closed by a later `---`) shown as a collapsed **Frontmatter** block — a Field/Value table for flat `key: value` metadata, a highlighted YAML code block when it nests — instead of leaking into the body as prose. It stays byte-for-byte in the source file, is never a comment target, and is fully escaped (no raw-HTML passthrough). A leading `---` with no closing delimiter is still an ordinary thematic rule;
 - commentable headings and paragraphs;
 - `+` affordances, double-click comments, keyboard `c` on focused blocks, and document-level comments;
 - side-panel thread cards with replies, resolve/reopen controls, orphan and content-drift warnings;
@@ -183,6 +184,7 @@ Stet.md is local-only and has no telemetry.
 - Sends `Referrer-Policy: no-referrer`.
 - Sends restrictive CSP: self-only scripts/styles, self/data images, no objects/forms/framing.
 - Escapes raw Markdown HTML by default; sanitized `<details>/<summary>` collapsibles render, with nested details supported.
+- Renders YAML frontmatter as escaped text only — keys, values, and nested YAML never reach the page as markup.
 - Blocks remote Markdown images/resources by default.
 
 ## Development
