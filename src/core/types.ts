@@ -90,6 +90,19 @@ export type ReviewParseError = {
   raw: string;
 };
 
+/**
+ * Leading YAML frontmatter block (`---` on line 1, closed by a later `---`).
+ * Kept verbatim in the source file; rendered as a collapsed metadata block.
+ */
+export type DocumentFrontmatter = {
+  /** YAML source between the delimiters, without the `---` lines. */
+  raw: string;
+  /** Byte range of the whole block, including both delimiter lines. */
+  range: ByteRange;
+  lineStart: number;
+  lineEnd: number;
+};
+
 export type RenderedBlock = {
   type: "heading" | "paragraph" | "list" | "blockquote" | "code" | "details";
   html: string;
@@ -107,6 +120,8 @@ export type ReviewDocument = {
   hasBom: boolean;
   finalNewline: boolean;
   html: string;
+  /** Present only when the file opens with a well-formed frontmatter block. */
+  frontmatter?: DocumentFrontmatter;
   targets: ReviewTarget[];
   threads: ReviewThread[];
   rawThreadBlocks: RawThreadBlock[];

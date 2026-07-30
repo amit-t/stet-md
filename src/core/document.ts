@@ -1,6 +1,6 @@
 import { basename, dirname, join } from "node:path";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import type { RenderedBlock, ReviewDocument, ReviewParseError, ReviewTarget, ReviewThread, ReviewWarning, RawThreadBlock, SaveOptions } from "./types.js";
+import type { DocumentFrontmatter, RenderedBlock, ReviewDocument, ReviewParseError, ReviewTarget, ReviewThread, ReviewWarning, RawThreadBlock, SaveOptions } from "./types.js";
 import { createThreadId, hashBuffer, sourceHash } from "./hash.js";
 import { escapeHtml, stripMarkdownInline } from "./escape.js";
 import { isHorizontalRule, normalizeLinkLabel, renderCodeBlock, renderInline, renderList, renderTable, slugify, type LinkDefinitions } from "./render.js";
@@ -9,6 +9,12 @@ import { isoNow } from "./time.js";
 import { StetConflictError, StetNotFoundError, StetParseError } from "./errors.js";
 
 const THREAD_RE = /<!-- (?:stet|redline):thread\r?\n([\s\S]*?)-->\r?\n?([\s\S]*?)<!-- \/(?:stet|redline):thread -->\r?\n?/g;
+
+/** A frontmatter delimiter line: exactly `---`, trailing spaces tolerated. */
+const FRONTMATTER_DELIMITER = /^---[ \t]*$/;
+
+/** A flat `key: value` frontmatter entry, the shape rendered as a table. */
+const FRONTMATTER_FIELD = /^([A-Za-z0-9_][A-Za-z0-9_.-]*):[ \t]+(\S.*?)[ \t]*$/;
 
 type Line = {
   index: number;
@@ -369,9 +375,65 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
   return html.join("\n");
 }
 
-function fencedCodeRanges(lines: Line[]): { start: number; end: number }[] {
+/**
+ * Detect leading YAML frontmatter: a `---` line at the very top of the file
+ * closed by a later `---` line. Anything else — no opening delimiter, or an
+ * opening delimiter that is never closed — is not frontmatter and keeps
+ * rendering as an ordinary thematic break plus body text.
+ */
+function detectFrontmatter(lines: Line[]): DocumentFrontmatter | undefined {
+  if (lines.length < 2 || !FRONTMATTER_DELIMITER.test(lineText(lines[0]))) return undefined;
+  const close = lines.findIndex((line, index) => index > 0 && FRONTMATTER_DELIMITER.test(lineText(line)));
+  if (close === -1) return undefined;
+  return {
+    raw: lines.slice(1, close).map((line) => lineText(line)).join("\n"),
+    range: { start: lines[0].start, end: lines[close].end },
+    lineStart: 1,
+    lineEnd: close + 1,
+  };
+}
+
+/** Strip one layer of matching YAML quotes from a scalar, when unambiguous. */
+function unquoteScalar(value: string): string {
+  const quote = value[0];
+  if ((quote !== '"' && quote !== "'") || value.length < 2 || !value.endsWith(quote)) return value;
+  const inner = value.slice(1, -1);
+  return inner.includes(quote) ? value : inner;
+}
+
+/**
+ * Flat `key: value` entries, or undefined when the block nests / uses any other
+ * YAML construct — in which case the raw source is shown instead of a table.
+ */
+function frontmatterFields(raw: string): { key: string; value: string }[] | undefined {
+  const fields: { key: string; value: string }[] = [];
+  for (const line of raw.split("\n")) {
+    if (line.trim() === "") continue;
+    const match = FRONTMATTER_FIELD.exec(line);
+    if (!match) return undefined;
+    fields.push({ key: match[1], value: unquoteScalar(match[2]) });
+  }
+  return fields.length > 0 ? fields : undefined;
+}
+
+/**
+ * GitHub-style collapsed metadata block. Every key and value is HTML-escaped —
+ * frontmatter is data, never a raw-HTML passthrough — and nested YAML falls
+ * back to a highlighted code block so nothing is lost.
+ */
+function renderFrontmatterBlock(frontmatter: DocumentFrontmatter): string {
+  const fields = frontmatterFields(frontmatter.raw);
+  const body = fields
+    ? `<table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>${fields
+        .map((field) => `<tr><td>${escapeHtml(field.key)}</td><td>${escapeHtml(field.value)}</td></tr>`)
+        .join("")}</tbody></table>`
+    : renderCodeBlock(frontmatter.raw, "yaml");
+  return ['<details class="stet-frontmatter">', "<summary>Frontmatter</summary>", body, "</details>"].join("\n");
+}
+
+function fencedCodeRanges(lines: Line[], startIndex = 0): { start: number; end: number }[] {
   const ranges: { start: number; end: number }[] = [];
-  let index = 0;
+  let index = startIndex;
   while (index < lines.length) {
     const fence = isFence(lines[index]);
     if (!fence) {
@@ -388,7 +450,7 @@ function fencedCodeRanges(lines: Line[]): { start: number; end: number }[] {
   return ranges;
 }
 
-function parseMarkdown(text: string, lines: Line[], threadRanges: { start: number; end: number }[], fileHashValue: string): MarkdownParse {
+function parseMarkdown(text: string, lines: Line[], threadRanges: { start: number; end: number }[], fileHashValue: string, frontmatter?: DocumentFrontmatter): MarkdownParse {
   const targets: ReviewTarget[] = [{
     id: "document",
     kind: "document",
@@ -405,12 +467,25 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
   const headingStack: string[] = [];
   const ordinals = new Map<string, number>();
 
+  // Frontmatter is metadata, not prose: it renders as a collapsed block and is
+  // never a comment target, so body parsing starts after it.
+  const bodyStart = frontmatter ? frontmatter.lineEnd : 0;
+  if (frontmatter) {
+    blocks.push({
+      type: "details",
+      html: renderFrontmatterBlock(frontmatter),
+      range: frontmatter.range,
+      lineStart: frontmatter.lineStart,
+      lineEnd: frontmatter.lineEnd,
+    });
+  }
+
   // Collect link reference definitions (outside code/thread blocks) so reference
   // links resolve and the definition lines themselves are hidden, as in a browser.
   const linkDefs: LinkDefinitions = new Map();
   const defLines = new Set<number>();
-  const codeRanges = fencedCodeRanges(lines);
-  for (let k = 0; k < lines.length; k += 1) {
+  const codeRanges = fencedCodeRanges(lines, bodyStart);
+  for (let k = bodyStart; k < lines.length; k += 1) {
     const candidate = lines[k];
     if (isRangeStartInside(threadRanges, candidate) || isRangeStartInside(codeRanges, candidate)) continue;
     const def = linkDefinitionMatch(lineText(candidate));
@@ -421,7 +496,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
   }
 
   let globalOrdinal = 0;
-  let i = 0;
+  let i = bodyStart;
   while (i < lines.length) {
     const line = lines[i];
     if (isRangeStartInside(threadRanges, line) || isBlank(line) || defLines.has(i)) {
@@ -588,9 +663,11 @@ export function loadReviewDocument(filePath: string, _options: LoadOptions = {})
   const lineEnding = detectLineEnding(text);
   const lines = splitLines(text);
   const fileHash = hashBuffer(buffer);
-  const ignoredRanges = fencedCodeRanges(lines);
+  const frontmatter = detectFrontmatter(lines);
+  const ignoredRanges = fencedCodeRanges(lines, frontmatter ? frontmatter.lineEnd : 0);
+  if (frontmatter) ignoredRanges.unshift(frontmatter.range);
   const scan = scanThreadBlocks(text, lines, lineEnding, ignoredRanges);
-  const markdown = parseMarkdown(text, lines, scan.ranges, fileHash);
+  const markdown = parseMarkdown(text, lines, scan.ranges, fileHash, frontmatter);
   const warnings = [...scan.warnings, ...markdown.warnings];
   attachThreads(scan.threads, markdown.targets, warnings);
   return {
@@ -601,6 +678,7 @@ export function loadReviewDocument(filePath: string, _options: LoadOptions = {})
     hasBom: buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf,
     finalNewline: text.endsWith("\n"),
     html: markdown.html,
+    frontmatter,
     targets: markdown.targets,
     threads: scan.threads,
     rawThreadBlocks: scan.rawThreadBlocks,
