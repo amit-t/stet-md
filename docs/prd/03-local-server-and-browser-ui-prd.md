@@ -37,7 +37,7 @@ MVP endpoints:
 
 MVP interactions:
 
-- Double-click eligible heading or paragraph.
+- Double-click any eligible block: heading, paragraph, list, table, blockquote, or fenced code — including blocks inside expanded `<details>` collapsibles at any depth. Container blocks are wrapped in a `<div class="stet-block" data-stet-target>` affordance; `<summary>` lines, `<hr>`, and the frontmatter block are not targets.
 - Hover eligible block and click `+`.
 - Focus block and press `c`.
 - Select text and press `c`; selected text becomes quoted context, but target remains block-level.
@@ -70,7 +70,7 @@ On reopen:
 - Browser opens for `stet-md prd.md`.
 - Document renders headings, paragraphs, lists, blockquotes, and code blocks.
 - Leading YAML frontmatter renders as a collapsed, fully escaped **Frontmatter** block, never as body prose, and is not a comment target. Detection requires `---` on line 1 plus a later closing `---`; anything else stays a thematic rule.
-- Double-click heading/paragraph opens composer.
+- Double-click any block-level target (incl. inside collapsibles) opens composer.
 - Saving writes `stet:thread` block.
 - Reopen restores thread beside target.
 - CLI-added reply appears after reload.
