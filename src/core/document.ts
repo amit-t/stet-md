@@ -210,7 +210,9 @@ function targetId(kind: string, ordinal: number): string {
   return `t_${kind}_${ordinal}`;
 }
 
-function makeTarget(kind: "heading" | "paragraph", headingPath: string[], blockOrdinal: number, quote: string, source: string, startLine: Line, endLine: Line, globalOrdinal: number): ReviewTarget {
+type MintableKind = "heading" | "paragraph" | "list" | "blockquote" | "table" | "code_block";
+
+function makeTarget(kind: MintableKind, headingPath: string[], blockOrdinal: number, quote: string, source: string, startLine: Line, endLine: Line, globalOrdinal: number): ReviewTarget {
   return {
     id: targetId(kind, globalOrdinal),
     kind,
@@ -222,6 +224,36 @@ function makeTarget(kind: "heading" | "paragraph", headingPath: string[], blockO
     lineStart: startLine.index + 1,
     lineEnd: endLine.index + 1,
   };
+}
+
+type TargetContext = {
+  targets: ReviewTarget[];
+  ordinals: Map<string, number>;
+  headingStack: string[];
+  threadRanges: { start: number; end: number }[];
+  nextGlobalOrdinal: () => number;
+};
+
+const KIND_FALLBACK_QUOTE: Record<string, string> = {
+  list: "List",
+  blockquote: "Blockquote",
+  table: "Table",
+  code_block: "Code block",
+};
+
+function mintContainerTarget(ctx: TargetContext, kind: "list" | "blockquote" | "table" | "code_block", source: string, startLine: Line, endLine: Line): ReviewTarget {
+  const path = ctx.headingStack.filter(Boolean);
+  const key = `${kind}:${path.join("/")}`;
+  const ordinal = ctx.ordinals.get(key) ?? 0;
+  ctx.ordinals.set(key, ordinal + 1);
+  const quote = stripMarkdownInline(source).replace(/\s+/g, " ").trim().slice(0, 240) || KIND_FALLBACK_QUOTE[kind];
+  const target = makeTarget(kind, path, ordinal, quote, source, startLine, endLine, ctx.nextGlobalOrdinal());
+  ctx.targets.push(target);
+  return target;
+}
+
+function wrapTargetBlock(target: ReviewTarget, inner: string): string {
+  return `<div class="stet-block" data-stet-target="${target.id}" tabindex="0">${inner}</div>`;
 }
 
 function rawHtmlWarning(warnings: ReviewWarning[]): void {
@@ -496,6 +528,13 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
   }
 
   let globalOrdinal = 0;
+  const ctx: TargetContext = {
+    targets,
+    ordinals,
+    headingStack,
+    threadRanges,
+    nextGlobalOrdinal: () => globalOrdinal++,
+  };
   let i = bodyStart;
   while (i < lines.length) {
     const line = lines[i];
@@ -514,7 +553,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       const key = `heading:${path.slice(0, -1).join("/")}`;
       const ordinal = ordinals.get(key) ?? 0;
       ordinals.set(key, ordinal + 1);
-      const target = makeTarget("heading", path, ordinal, title, lineText(line), line, line, globalOrdinal++);
+      const target = makeTarget("heading", path, ordinal, title, lineText(line), line, line, ctx.nextGlobalOrdinal());
       targets.push(target);
       blocks.push({
         type: "heading",
@@ -537,7 +576,15 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       if (i < lines.length) i += 1;
       const end = i - 1;
       const codeLines = lines.slice(start + 1, Math.max(start + 1, end)).map((candidate) => candidate.content).join("\n");
-      blocks.push({ type: "code", html: renderCodeBlock(codeLines, lang), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      const codeTarget = mintContainerTarget(ctx, "code_block", collectText(lines, start, end), lines[start], lines[end]);
+      blocks.push({
+        type: "code",
+        html: wrapTargetBlock(codeTarget, renderCodeBlock(codeLines, lang)),
+        range: { start: lines[start].start, end: lines[end].end },
+        lineStart: start + 1,
+        lineEnd: end + 1,
+        targetId: codeTarget.id,
+      });
       continue;
     }
 
@@ -565,7 +612,15 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
         i += 1;
       }
       const end = i - 1;
-      blocks.push({ type: "list", html: renderList(rawLines, warnings, linkDefs), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      const listTarget = mintContainerTarget(ctx, "list", collectText(lines, start, end), lines[start], lines[end]);
+      blocks.push({
+        type: "list",
+        html: wrapTargetBlock(listTarget, renderList(rawLines, warnings, linkDefs)),
+        range: { start: lines[start].start, end: lines[end].end },
+        lineStart: start + 1,
+        lineEnd: end + 1,
+        targetId: listTarget.id,
+      });
       continue;
     }
 
@@ -577,7 +632,15 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
         i += 1;
       }
       const end = i - 1;
-      blocks.push({ type: "blockquote", html: `<blockquote>${renderBlockquoteBody(parts, warnings, linkDefs)}</blockquote>`, range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      const quoteTarget = mintContainerTarget(ctx, "blockquote", collectText(lines, start, end), lines[start], lines[end]);
+      blocks.push({
+        type: "blockquote",
+        html: wrapTargetBlock(quoteTarget, `<blockquote>${renderBlockquoteBody(parts, warnings, linkDefs)}</blockquote>`),
+        range: { start: lines[start].start, end: lines[end].end },
+        lineStart: start + 1,
+        lineEnd: end + 1,
+        targetId: quoteTarget.id,
+      });
       continue;
     }
 
@@ -586,7 +649,15 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       while (i < lines.length && isTable(lines[i])) i += 1;
       const end = i - 1;
       const tableLines = lines.slice(start, end + 1).map((candidate) => lineText(candidate));
-      blocks.push({ type: "code", html: renderTable(tableLines, warnings, linkDefs), range: { start: lines[start].start, end: lines[end].end }, lineStart: start + 1, lineEnd: end + 1 });
+      const tableTarget = mintContainerTarget(ctx, "table", collectText(lines, start, end), lines[start], lines[end]);
+      blocks.push({
+        type: "code",
+        html: wrapTargetBlock(tableTarget, renderTable(tableLines, warnings, linkDefs)),
+        range: { start: lines[start].start, end: lines[end].end },
+        lineStart: start + 1,
+        lineEnd: end + 1,
+        targetId: tableTarget.id,
+      });
       continue;
     }
 
@@ -608,7 +679,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
     const ordinal = ordinals.get(key) ?? 0;
     ordinals.set(key, ordinal + 1);
     const quote = stripMarkdownInline(paragraphSource).slice(0, 240) || "Paragraph";
-    const target = makeTarget("paragraph", path, ordinal, quote, paragraphSource, lines[start], lines[end], globalOrdinal++);
+    const target = makeTarget("paragraph", path, ordinal, quote, paragraphSource, lines[start], lines[end], ctx.nextGlobalOrdinal());
     targets.push(target);
     blocks.push({
       type: "paragraph",

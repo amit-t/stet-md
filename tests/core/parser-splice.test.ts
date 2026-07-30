@@ -20,7 +20,7 @@ function tempMarkdown(contents: string | Buffer): string {
 
 describe("core parser and byte-splice writer", () => {
   test("parses zero-thread Markdown and exposes heading and paragraph targets", () => {
-    const file = tempMarkdown("# Title\n\nParagraph one.\n\n- list item not commentable\n");
+    const file = tempMarkdown("# Title\n\nParagraph one.\n\n- list item is commentable too\n");
     const doc = loadReviewDocument(file);
 
     expect(doc.threads).toEqual([]);
@@ -28,6 +28,7 @@ describe("core parser and byte-splice writer", () => {
       ["document", "Document"],
       ["heading", "Title"],
       ["paragraph", "Paragraph one."],
+      ["list", "list item is commentable too"],
     ]);
   });
 

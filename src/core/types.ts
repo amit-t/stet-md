@@ -6,7 +6,7 @@
 export type ThreadStatus = "open" | "resolved";
 export type ReviewStatus = ThreadStatus;
 
-export type TargetKind = "document" | "heading" | "paragraph" | "code_block" | "sub_block";
+export type TargetKind = "document" | "heading" | "paragraph" | "list" | "blockquote" | "table" | "code_block" | "sub_block";
 export type ReviewTargetKind = TargetKind;
 
 export type ByteRange = {
