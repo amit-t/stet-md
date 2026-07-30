@@ -246,7 +246,10 @@ function mintContainerTarget(ctx: TargetContext, kind: "list" | "blockquote" | "
   const key = `${kind}:${path.join("/")}`;
   const ordinal = ctx.ordinals.get(key) ?? 0;
   ctx.ordinals.set(key, ordinal + 1);
-  const quote = stripMarkdownInline(source).replace(/\s+/g, " ").trim().slice(0, 240) || KIND_FALLBACK_QUOTE[kind];
+  // List bullets and blockquote markers are structure, not content — drop them
+  // from the human-facing quote (the hash still covers the raw source).
+  const quoteSource = source.replace(/^\s*(?:[-+*]|\d+[.)])\s+/gm, "").replace(/^\s*>\s?/gm, "");
+  const quote = stripMarkdownInline(quoteSource).replace(/\s+/g, " ").trim().slice(0, 240) || KIND_FALLBACK_QUOTE[kind];
   const target = makeTarget(kind, path, ordinal, quote, source, startLine, endLine, ctx.nextGlobalOrdinal());
   ctx.targets.push(target);
   return target;
