@@ -926,10 +926,12 @@ export function createCommentBySelector(filePath: string, selector: string, auth
   return saveReviewThreads(filePath, [thread], { expectedHash: doc.fileHash });
 }
 
+const SELECTABLE_KINDS = new Set(["paragraph", "heading", "list", "blockquote", "table", "code_block"]);
+
 function selectTarget(doc: ReviewDocument, selector: string): ReviewTarget | undefined {
   if (selector === "document") return doc.targets.find((target) => target.kind === "document");
   const [kind, raw] = selector.split(/:(.*)/s).filter(Boolean);
-  if (kind === "paragraph" || kind === "heading") {
+  if (kind && SELECTABLE_KINDS.has(kind)) {
     const byKind = doc.targets.filter((target) => target.kind === kind);
     const ordinal = Number.parseInt(raw ?? "0", 10);
     if (Number.isFinite(ordinal)) return byKind[ordinal];

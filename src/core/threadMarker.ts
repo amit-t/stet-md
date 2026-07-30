@@ -29,6 +29,9 @@ const VALID_KIND: TargetKind[] = [
   "document",
   "heading",
   "paragraph",
+  "list",
+  "blockquote",
+  "table",
   "code_block",
   "sub_block",
 ];

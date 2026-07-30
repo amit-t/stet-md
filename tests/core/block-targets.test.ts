@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadReviewDocument } from "../../src/core/index.js";
+import { createCommentBySelector, loadReviewDocument } from "../../src/core/index.js";
 
 function tempMarkdown(contents: string): string {
   const dir = mkdtempSync(join(tmpdir(), "stet-block-targets-"));
@@ -61,5 +61,21 @@ describe("top-level container targets", () => {
   test("hr mints no target", () => {
     const doc = loadReviewDocument(tempMarkdown("# T\n\n---\n\nProse.\n"));
     expect(doc.targets.filter((t) => t.kind !== "document" && t.kind !== "heading" && t.kind !== "paragraph")).toEqual([]);
+  });
+});
+
+describe("selector resolution for new kinds", () => {
+  test("comment --target list:0 anchors a thread to the first list", () => {
+    const file = tempMarkdown(TOP_LEVEL);
+    createCommentBySelector(file, "list:0", "Amit", "Answer: option B.");
+    const doc = loadReviewDocument(file);
+    expect(doc.threads).toHaveLength(1);
+    expect(doc.threads[0]!.target.kind).toBe("list");
+    expect(doc.errors).toEqual([]);
+  });
+
+  test("unknown kind still returns not-found", () => {
+    const file = tempMarkdown(TOP_LEVEL);
+    expect(() => createCommentBySelector(file, "banana:0", "Amit", "x")).toThrow(/No target matched/);
   });
 });

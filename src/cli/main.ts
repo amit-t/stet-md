@@ -24,6 +24,7 @@ Usage:
   stet-md resolve FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
   stet-md reopen FILE.md --thread THREAD_ID --author NAME [--message MESSAGE]
   stet-md comment FILE.md --target paragraph:0 --author NAME --message MESSAGE
+                  (targets: document, paragraph:N, heading:N, list:N, blockquote:N, table:N, code_block:N)
   stet-md --print-agent-protocol
   stet-md --version
   stet-md --help
