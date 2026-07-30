@@ -296,7 +296,7 @@ function renderInlineWithSafeHtml(text: string, warnings: ReviewWarning[], defs:
     .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
 }
 
-function renderDetailsBlock(lines: Line[], start: number, end: number, warnings: ReviewWarning[], defs: LinkDefinitions): string {
+function renderDetailsBlock(lines: Line[], start: number, end: number, warnings: ReviewWarning[], defs: LinkDefinitions, ctx?: TargetContext): string {
   const open = detailsOpenMatch(lines[start])?.[1] ? " open" : "";
   let index = start + 1;
   while (index < end && isBlank(lines[index])) index += 1;
@@ -305,16 +305,16 @@ function renderDetailsBlock(lines: Line[], start: number, end: number, warnings:
   const summaryHtml = summary ? `<summary>${renderInlineWithSafeHtml(summary[1], warnings, defs)}</summary>` : "";
   if (summary) index += 1;
 
-  const inner = renderMarkdownFragment(lines, index, end - 1, warnings, defs);
+  const inner = renderMarkdownFragment(lines, index, end - 1, warnings, defs, ctx);
   return [`<details${open}>`, summaryHtml, inner, "</details>"].filter(Boolean).join("\n");
 }
 
-function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: number, warnings: ReviewWarning[], defs: LinkDefinitions): string {
+function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: number, warnings: ReviewWarning[], defs: LinkDefinitions, ctx?: TargetContext): string {
   const html: string[] = [];
   let i = startIndex;
   while (i <= endIndex) {
     const line = lines[i];
-    if (isBlank(line) || linkDefinitionMatch(lineText(line))) {
+    if (isBlank(line) || linkDefinitionMatch(lineText(line)) || (ctx && isRangeStartInside(ctx.threadRanges, line))) {
       i += 1;
       continue;
     }
@@ -322,7 +322,7 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
     if (detailsOpenMatch(line)) {
       const nestedDetailsEnd = findDetailsEnd(lines, i);
       if (nestedDetailsEnd !== undefined && nestedDetailsEnd <= endIndex) {
-        html.push(renderDetailsBlock(lines, i, nestedDetailsEnd, warnings, defs));
+        html.push(renderDetailsBlock(lines, i, nestedDetailsEnd, warnings, defs, ctx));
         i = nestedDetailsEnd + 1;
         continue;
       }
@@ -336,7 +336,19 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
     if (heading) {
       const level = heading[1].length;
       const title = stripMarkdownInline(heading[2]);
-      html.push(`<h${level} id="${slugify(title)}">${renderInline(title, warnings, defs)}</h${level}>`);
+      let attr = "";
+      if (ctx) {
+        ctx.headingStack.splice(level - 1);
+        ctx.headingStack[level - 1] = title;
+        const path = ctx.headingStack.filter(Boolean);
+        const key = `heading:${path.slice(0, -1).join("/")}`;
+        const ordinal = ctx.ordinals.get(key) ?? 0;
+        ctx.ordinals.set(key, ordinal + 1);
+        const target = makeTarget("heading", path, ordinal, title, lineText(line), line, line, ctx.nextGlobalOrdinal());
+        ctx.targets.push(target);
+        attr = ` data-stet-target="${target.id}" tabindex="0"`;
+      }
+      html.push(`<h${level} id="${slugify(title)}"${attr}>${renderInline(title, warnings, defs)}</h${level}>`);
       i += 1;
       continue;
     }
@@ -349,28 +361,38 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
       while (i <= endIndex && !lineText(lines[i]).startsWith(fence[1])) i += 1;
       const codeEnd = Math.min(i, endIndex);
       const codeLines = lines.slice(codeStart + 1, Math.max(codeStart + 1, codeEnd)).map((candidate) => candidate.content).join("\n");
-      html.push(renderCodeBlock(codeLines, lang));
+      let rendered = renderCodeBlock(codeLines, lang);
+      if (ctx) rendered = wrapTargetBlock(mintContainerTarget(ctx, "code_block", collectText(lines, codeStart, codeEnd), lines[codeStart], lines[codeEnd]), rendered);
+      html.push(rendered);
       i = codeEnd + 1;
       continue;
     }
 
     if (isList(line)) {
+      const listStart = i;
       const rawLines: string[] = [];
       while (i <= endIndex && (isList(lines[i]) || (lineText(lines[i]).startsWith("  ") && !isBlank(lines[i]) && !detailsOpenMatch(lines[i])))) {
+        if (ctx && isRangeStartInside(ctx.threadRanges, lines[i])) break;
         rawLines.push(lineText(lines[i]));
         i += 1;
       }
-      html.push(renderList(rawLines, warnings, defs));
+      let rendered = renderList(rawLines, warnings, defs);
+      if (ctx) rendered = wrapTargetBlock(mintContainerTarget(ctx, "list", collectText(lines, listStart, i - 1), lines[listStart], lines[i - 1]), rendered);
+      html.push(rendered);
       continue;
     }
 
     if (isBlockquote(line)) {
+      const quoteStart = i;
       const parts: string[] = [];
       while (i <= endIndex && isBlockquote(lines[i])) {
+        if (ctx && isRangeStartInside(ctx.threadRanges, lines[i])) break;
         parts.push(lineText(lines[i]).replace(/^\s{0,3}>\s?/, ""));
         i += 1;
       }
-      html.push(`<blockquote>${renderBlockquoteBody(parts, warnings, defs)}</blockquote>`);
+      let rendered = `<blockquote>${renderBlockquoteBody(parts, warnings, defs)}</blockquote>`;
+      if (ctx) rendered = wrapTargetBlock(mintContainerTarget(ctx, "blockquote", collectText(lines, quoteStart, i - 1), lines[quoteStart], lines[i - 1]), rendered);
+      html.push(rendered);
       continue;
     }
 
@@ -378,7 +400,9 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
       const tableStart = i;
       while (i <= endIndex && isTable(lines[i])) i += 1;
       const tableLines = lines.slice(tableStart, i).map((candidate) => lineText(candidate));
-      html.push(renderTable(tableLines, warnings, defs));
+      let rendered = renderTable(tableLines, warnings, defs);
+      if (ctx) rendered = wrapTargetBlock(mintContainerTarget(ctx, "table", collectText(lines, tableStart, i - 1), lines[tableStart], lines[i - 1]), rendered);
+      html.push(rendered);
       continue;
     }
 
@@ -399,13 +423,25 @@ function renderMarkdownFragment(lines: Line[], startIndex: number, endIndex: num
       !isTable(lines[i]) &&
       !isHorizontalRule(lineText(lines[i])) &&
       !linkDefinitionMatch(lineText(lines[i])) &&
-      !detailsOpenMatch(lines[i])
+      !detailsOpenMatch(lines[i]) &&
+      !(ctx && isRangeStartInside(ctx.threadRanges, lines[i]))
     ) {
       i += 1;
     }
     const paragraphSource = collectText(lines, paragraphStart, i - 1);
     if (RAW_HTML_TAG.test(paragraphSource)) rawHtmlWarning(warnings);
-    html.push(`<p>${renderInline(paragraphSource.replace(/\n/g, " "), warnings, defs)}</p>`);
+    if (ctx) {
+      const path = ctx.headingStack.filter(Boolean);
+      const key = `paragraph:${path.join("/")}`;
+      const ordinal = ctx.ordinals.get(key) ?? 0;
+      ctx.ordinals.set(key, ordinal + 1);
+      const quote = stripMarkdownInline(paragraphSource).slice(0, 240) || "Paragraph";
+      const target = makeTarget("paragraph", path, ordinal, quote, paragraphSource, lines[paragraphStart], lines[i - 1], ctx.nextGlobalOrdinal());
+      ctx.targets.push(target);
+      html.push(`<p data-stet-target="${target.id}" tabindex="0">${renderInline(paragraphSource.replace(/\n/g, " "), warnings, defs)}</p>`);
+    } else {
+      html.push(`<p>${renderInline(paragraphSource.replace(/\n/g, " "), warnings, defs)}</p>`);
+    }
   }
   return html.join("\n");
 }
@@ -597,7 +633,7 @@ function parseMarkdown(text: string, lines: Line[], threadRanges: { start: numbe
       const end = detailsEnd;
       blocks.push({
         type: "details",
-        html: renderDetailsBlock(lines, start, end, warnings, linkDefs),
+        html: renderDetailsBlock(lines, start, end, warnings, linkDefs, ctx),
         range: { start: lines[start].start, end: lines[end].end },
         lineStart: start + 1,
         lineEnd: end + 1,

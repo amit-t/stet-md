@@ -59,7 +59,7 @@ describe("core parser and byte-splice writer", () => {
     expect(doc.html).toContain("<summary><em>1a. Follow-up?</em></summary>");
     expect((doc.html.match(/<details>/g) ?? [])).toHaveLength(2);
     expect(doc.html).toContain("<ul><li><strong>Why it matters:</strong> Reason.</li></ul>");
-    expect(doc.html).toContain("<p>Nested body.</p>");
+    expect(doc.html).toMatch(/<p data-stet-target="t_paragraph_\d+" tabindex="0">Nested body\.<\/p>/);
     expect(doc.html).not.toContain("&lt;details&gt;");
     expect(doc.html).not.toContain("&lt;summary&gt;");
     expect(doc.warnings.some((warning) => warning.kind === "unsafe_html_escaped")).toBe(false);

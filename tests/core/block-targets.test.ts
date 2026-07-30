@@ -79,3 +79,69 @@ describe("selector resolution for new kinds", () => {
     expect(() => createCommentBySelector(file, "banana:0", "Amit", "x")).toThrow(/No target matched/);
   });
 });
+
+const WITH_DETAILS = [
+  "# Title",
+  "",
+  "<details>",
+  "<summary>**Q3: pick an option**</summary>",
+  "",
+  "Context paragraph inside.",
+  "",
+  "- option A",
+  "- option B",
+  "",
+  "<details>",
+  "<summary>nested</summary>",
+  "",
+  "Deep paragraph.",
+  "",
+  "</details>",
+  "",
+  "</details>",
+  "",
+].join("\n");
+
+describe("targets inside collapsibles", () => {
+  test("paragraphs and lists inside details mint targets with real line ranges", () => {
+    const doc = loadReviewDocument(tempMarkdown(WITH_DETAILS));
+    const innerParagraph = doc.targets.find((t) => t.quote === "Context paragraph inside.")!;
+    expect(innerParagraph.kind).toBe("paragraph");
+    expect(innerParagraph.lineStart).toBe(6);
+    const innerList = doc.targets.find((t) => t.kind === "list")!;
+    expect(innerList.quote).toContain("option A");
+    expect(innerList.lineStart).toBe(8);
+    expect(innerList.lineEnd).toBe(9);
+  });
+
+  test("nested details content mints targets", () => {
+    const doc = loadReviewDocument(tempMarkdown(WITH_DETAILS));
+    expect(doc.targets.some((t) => t.quote === "Deep paragraph.")).toBe(true);
+  });
+
+  test("summary line is not a target", () => {
+    const doc = loadReviewDocument(tempMarkdown(WITH_DETAILS));
+    expect(doc.targets.some((t) => t.quote.includes("Q3: pick an option"))).toBe(false);
+  });
+
+  test("inner blocks carry data-stet-target in the rendered html", () => {
+    const doc = loadReviewDocument(tempMarkdown(WITH_DETAILS));
+    const innerList = doc.targets.find((t) => t.kind === "list")!;
+    expect(doc.html).toContain(`<div class="stet-block" data-stet-target="${innerList.id}" tabindex="0"><ul>`);
+  });
+
+  test("frontmatter block mints no targets", () => {
+    const doc = loadReviewDocument(tempMarkdown("---\ntitle: X\n---\n\nProse.\n"));
+    expect(doc.targets.filter((t) => t.kind === "table")).toEqual([]);
+  });
+
+  test("comment on an inner list roundtrips without leaking the marker into prose", () => {
+    const file = tempMarkdown(WITH_DETAILS);
+    createCommentBySelector(file, "list:0", "Amit", "Answer: option B.");
+    const doc = loadReviewDocument(file);
+    expect(doc.errors).toEqual([]);
+    expect(doc.threads).toHaveLength(1);
+    expect(doc.threads[0]!.anchor?.state ?? "attached").not.toBe("orphan");
+    expect(doc.html).not.toContain("stet:");
+  });
+});
